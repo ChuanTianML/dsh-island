@@ -11,13 +11,19 @@
 
 [简体中文](README.zh-CN.md)
 
-<img src="docs/assets/dsh-island-expanded.png" width="500" alt="DSH Island expanded with attention, failure, working, and completed sessions">
+<img src="docs/assets/dsh-island-desktop.png" width="900" alt="DSH Island floating above a privacy-safe synthetic developer workspace">
+
+<sub>Every screenshot and recording uses deterministic synthetic sessions—never a personal desktop, path, account, or live conversation.</sub>
 
 </div>
 
 DSH Island lets you return to your editor while several [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) Agents keep working. Its collapsed capsule answers what matters immediately: whether a session needs you, how many signals are active, and whether DSH is reachable. One click reveals the complete session list.
 
-It is an independent community companion, not an official DeepSeek product.
+It is an independent native companion that connects to the published DSH Web API. It does not run inside the Harness process, so there is no `cordis.yml` entry to add. Start DSH Web, open DSH Island, and the two work together. It is a community project, not an official DeepSeek product.
+
+<div align="center">
+  <img src="docs/assets/dsh-island-demo.gif" width="900" alt="Privacy-safe demo: three sessions working, one session requests attention, and the island expands to show the fleet">
+</div>
 
 ## What it shows
 
@@ -50,24 +56,55 @@ Connected priority is `needs attention → failure → running → completed →
 
 ## Install
 
+### Manual install
+
 1. Download `DSH-Island-0.1.0-macOS-universal.zip` from the [latest release](https://github.com/ChuanTianML/dsh-island/releases/latest).
-2. Unzip it and move **DSH Island.app** to Applications.
-3. Start DSH Web, then open DSH Island. The default endpoint is `http://127.0.0.1:3080`.
+2. Optionally download the adjacent `.sha256` file and run `shasum -a 256 -c DSH-Island-0.1.0-macOS-universal.zip.sha256`.
+3. Unzip it and move **DSH Island.app** to Applications.
+4. Start DSH Web, then open DSH Island. The default endpoint is `http://127.0.0.1:3080`.
 
 The 0.1 release is ad-hoc signed, not Apple-notarized. On first launch, macOS may require Control-clicking the app and choosing **Open**. The release runs natively on both Apple silicon and Intel Macs.
 
 Typical DSH commands are:
 
 ```sh
+npx @deepseek-ai/dsh web
+
+# If dsh is already installed globally:
 dsh web
 
 # From a DeepSeek Harness source checkout:
-pnpm dsh --profile web
+pnpm dsh web
 ```
 
-Use Settings if DSH runs on another port. Non-loopback endpoints are refused until you explicitly enable them; only connect to a remote DSH Host you trust.
+No configuration is required when DSH uses the default loopback endpoint. Open Settings from the island gear or menu bar when you need to change a preference:
+
+| Setting | Purpose |
+| --- | --- |
+| DSH endpoint | Connect to a different local port or trusted Host |
+| Allow a non-loopback endpoint | Required before any remote address is accepted |
+| Privacy mode | Alias titles and hide Todo text, tool names, errors, and connection details |
+| Launch at login | Register the app with macOS login items |
+| Reset island position | Return the panel to its default display-relative position |
+
+Non-loopback endpoints are refused until you explicitly enable them; only connect to a remote DSH Host you trust.
 
 Clicking a row opens `?session=<id>`. The Web UI opens safely without extra software; exact session selection is added by the optional community [dsh-deeplink](https://github.com/qyw233/dsh-deeplink) plugin.
+
+### Install with a coding agent
+
+A coding agent can download, verify, install, launch, and configure the app. Paste this prompt into an agent running on the target Mac:
+
+```text
+Install DSH Island v0.1.0 from https://github.com/ChuanTianML/dsh-island/releases/tag/v0.1.0 on this Mac.
+
+1. Require macOS 13 or later. Download the universal ZIP and its .sha256 file, then verify them with shasum -a 256 -c.
+2. Check whether /Applications/DSH Island.app already exists. Ask me before replacing an existing installation.
+3. Move the verified app to /Applications. Do not bypass Gatekeeper or change macOS security settings; if first launch requires Control-click → Open, hand that step back to me.
+4. Start DeepSeek Harness Web with npx @deepseek-ai/dsh web unless it is already running.
+5. Open DSH Island and use its Settings UI to keep the default http://127.0.0.1:3080 endpoint. Ask before enabling a non-loopback endpoint or changing privacy-related settings.
+6. Confirm that the island reports a connected DSH state and show me the final configuration. Do not collect or upload any real session title, path, account detail, or desktop screenshot.
+```
 
 ## Privacy and safety
 
@@ -94,8 +131,11 @@ The packaging script builds a universal application, generates the icon, applies
 Run the deterministic visual fixture without a DSH Host:
 
 ```sh
+swift run dsh-island --demo-working
 swift run dsh-island --demo-expanded
 ```
+
+The committed community media is rendered from the same synthetic fixtures. Run `./scripts/render-marketing-assets.sh` to regenerate the social preview, desktop scene, and GIF source frames. See [`docs/marketing/README.md`](docs/marketing/README.md) for its privacy rules.
 
 See [product design](docs/product-design.md), [architecture](docs/architecture.md), and the [0.1 validation record](docs/validation.md) for the state semantics and verification evidence.
 

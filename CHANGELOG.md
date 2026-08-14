@@ -2,6 +2,12 @@
 
 All notable changes to DSH Island are documented here.
 
+## Unreleased
+
+- Add privacy-safe social, desktop-context, and animated community previews generated from deterministic demo sessions.
+- Document manual and Coding Agent installation, endpoint configuration, and the companion-app integration model.
+- Add a running-only demo fixture for the collapsed-to-attention community walkthrough.
+
 ## 0.1.0 - 2026-08-14
 
 - Add a native, always-on-top macOS capsule with collapsed and expanded session views.

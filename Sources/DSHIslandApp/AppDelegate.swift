@@ -30,13 +30,16 @@ private final class AppDelegate: NSObject, NSApplicationDelegate {
 
   func applicationDidFinishLaunching(_ notification: Notification) {
     let arguments = Set(CommandLine.arguments.dropFirst())
-    let demoMode = arguments.contains("--demo") || arguments.contains("--demo-expanded")
+    let demoWorking = arguments.contains("--demo-working")
+    let demoMode =
+      arguments.contains("--demo") || arguments.contains("--demo-expanded") || demoWorking
     let startExpanded = arguments.contains("--demo-expanded")
 
     preferences = PreferencesStore()
     model = IslandViewModel(
       preferences: preferences,
       demoMode: demoMode,
+      demoWorking: demoWorking,
       startExpanded: startExpanded
     )
     panelController = IslandPanelController(
