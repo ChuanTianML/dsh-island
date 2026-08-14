@@ -1,0 +1,52 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    runs-on: macos-14
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Toolchain
+        run: swift --version
+
+      - name: Unit tests
+        run: swift test
+
+      - name: Swift formatting
+        run: xcrun swift-format lint --recursive Sources Tests Package.swift
+
+      - name: Release build with warnings as errors
+        run: swift build -c release -Xswiftc -strict-concurrency=complete -Xswiftc -warnings-as-errors
+
+      - name: Package universal application
+        run: ./scripts/build-app.sh
+
+      - name: Verify bundle and archive
+        run: |
+          codesign --verify --deep --strict "dist/DSH Island.app"
+          plutil -lint "dist/DSH Island.app/Contents/Info.plist"
+          lipo -archs "dist/DSH Island.app/Contents/MacOS/DSH Island" | grep -q arm64
+          lipo -archs "dist/DSH Island.app/Contents/MacOS/DSH Island" | grep -q x86_64
+          unzip -t dist/DSH-Island-*-macOS-universal.zip
+          cd dist && shasum -a 256 -c DSH-Island-*-macOS-universal.zip.sha256
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: DSH-Island-macOS-universal
+          path: |
+            dist/DSH-Island-*-macOS-universal.zip
+            dist/DSH-Island-*-macOS-universal.zip.sha256
+          if-no-files-found: error

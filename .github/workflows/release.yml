@@ -1,0 +1,45 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*.*.*"
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: macos-14
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Verify tag matches bundle version
+        run: |
+          version="$(plutil -extract CFBundleShortVersionString raw Resources/Info.plist)"
+          test "$GITHUB_REF_NAME" = "v$version"
+
+      - name: Test and package
+        run: |
+          swift test
+          xcrun swift-format lint --recursive Sources Tests Package.swift
+          swift build -c release -Xswiftc -strict-concurrency=complete -Xswiftc -warnings-as-errors
+          ./scripts/build-app.sh
+
+      - name: Verify release payload
+        run: |
+          codesign --verify --deep --strict "dist/DSH Island.app"
+          unzip -t dist/DSH-Island-*-macOS-universal.zip
+          cd dist && shasum -a 256 -c DSH-Island-*-macOS-universal.zip.sha256
+
+      - name: Publish GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "$GITHUB_REF_NAME" \
+            dist/DSH-Island-*-macOS-universal.zip \
+            dist/DSH-Island-*-macOS-universal.zip.sha256 \
+            --verify-tag \
+            --generate-notes \
+            --title "DSH Island ${GITHUB_REF_NAME#v}"
