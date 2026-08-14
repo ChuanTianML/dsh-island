@@ -18,6 +18,7 @@ final class IslandViewModel: ObservableObject {
 
   private let preferences: PreferencesStore
   private let demoMode: Bool
+  private let demoWorking: Bool
   private var engine: StatusEngine
   private var client: DSHClient?
   private var generation = UUID()
@@ -26,9 +27,15 @@ final class IslandViewModel: ObservableObject {
   private var muxTask: Task<Void, Never>?
   private var baselineInFlight = false
 
-  init(preferences: PreferencesStore, demoMode: Bool, startExpanded: Bool) {
+  init(
+    preferences: PreferencesStore,
+    demoMode: Bool,
+    demoWorking: Bool,
+    startExpanded: Bool
+  ) {
     self.preferences = preferences
     self.demoMode = demoMode
+    self.demoWorking = demoWorking
     isExpanded = startExpanded
     engine = StatusEngine(privacyMode: preferences.privacyMode)
     if demoMode {
@@ -189,6 +196,10 @@ final class IslandViewModel: ObservableObject {
 
   private func installDemoState() {
     let now = Date()
+    if demoWorking {
+      installWorkingDemoState(now: now)
+      return
+    }
     var demo = StatusEngine(privacyMode: preferences.privacyMode)
     demo.applyBaseline(
       [
@@ -270,6 +281,45 @@ final class IslandViewModel: ObservableObject {
             "data": .object(["name": .string("functions.exec_command")]),
           ]),
         ]), now: now.addingTimeInterval(-3))
+    engine = demo
+    publishSnapshot(now: now)
+  }
+
+  private func installWorkingDemoState(now: Date) {
+    var demo = StatusEngine(privacyMode: preferences.privacyMode)
+    demo.applyBaseline(
+      [
+        SessionRecord(
+          id: "demo-stream",
+          updatedAt: now.addingTimeInterval(-24),
+          running: true,
+          blank: false,
+          workingDirectory: "/workspace/stream",
+          title: "Trace multi-session events",
+          todos: [
+            TodoItem(content: "Map status events", status: .completed),
+            TodoItem(content: "Verify reconnect flow", status: .inProgress),
+            TodoItem(content: "Document edge cases", status: .pending),
+          ],
+          projectionSequence: 12
+        ),
+        SessionRecord(
+          id: "demo-release",
+          updatedAt: now.addingTimeInterval(-17),
+          running: true,
+          blank: false,
+          workingDirectory: "/workspace/release",
+          title: "Prepare the community release"
+        ),
+        SessionRecord(
+          id: "demo-tests",
+          updatedAt: now.addingTimeInterval(-11),
+          running: true,
+          blank: false,
+          workingDirectory: "/workspace/tests",
+          title: "Run the privacy-safe demo"
+        ),
+      ], now: now.addingTimeInterval(-60))
     engine = demo
     publishSnapshot(now: now)
   }

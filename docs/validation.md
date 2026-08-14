@@ -20,3 +20,9 @@ The first visual pass found a truncated collapsed headline, excess expanded whit
 The current DeepSeek Harness source checkout at commit `47f943859bef60e4160492346772ded9b24f765a` ran with a fresh temporary `DSH_HOME` on loopback port 43080. The model base URL was forced to an unreachable loopback port so the check could not make an external model request.
 
 The application established the two published downlink WebSockets plus an HTTP keep-alive connection, displayed the successful empty `session.list` baseline as connected idle, received a real session creation and running/error sequence, and changed to a visible failed-session row with the Host-provided title and bounded error summary. This exercised the current HTTP client-request envelope, response `rpcId` check, `events.host`, and `events.mux` carriers without changing the Harness checkout or the user's normal Harness home.
+
+## Community-media privacy check
+
+The community preview update ran `./scripts/render-marketing-assets.sh` against repository-local fixtures and encoded four state frames into a 1200×720, 7.5-second GIF. The desktop and editor context is synthetic HTML; the DSH Island pixels come from the deterministic `--demo-working` and `--demo-expanded` modes. No live DSH Host, personal desktop, browser profile, home path, account, notification, or session was used.
+
+`swift test` passed all 28 tests. The strict release build, `bash -n scripts/build-app.sh scripts/render-marketing-assets.sh`, `git diff --check`, PNG/GIF format and dimension checks, final-GIF decode inspection, metadata inspection, OCR scanning, and binary-string scanning passed. The privacy scans looked for a home path, local username, Feishu identifiers, conversation identifiers, email addresses, API-key labels, and token labels; none appeared in the published media.
