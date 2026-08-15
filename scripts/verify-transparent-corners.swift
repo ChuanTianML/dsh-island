@@ -19,16 +19,24 @@ for path in CommandLine.arguments.dropFirst() {
     exit(1)
   }
 
-  let cornerPoints = [
-    (0, 0),
-    (image.pixelsWide - 1, 0),
-    (0, image.pixelsHigh - 1),
-    (image.pixelsWide - 1, image.pixelsHigh - 1),
-  ]
-  for (x, y) in cornerPoints {
-    guard let color = image.colorAt(x: x, y: y), color.alphaComponent <= 0.16 else {
-      fputs("PNG corner is not transparent at \(x),\(y): \(path)\n", stderr)
-      exit(1)
+  let probeDepth = min(8, min(image.pixelsWide, image.pixelsHigh) / 8)
+  for xOffset in 0..<probeDepth {
+    for yOffset in 0..<probeDepth {
+      let cornerPoints = [
+        (xOffset, yOffset),
+        (image.pixelsWide - 1 - xOffset, yOffset),
+        (xOffset, image.pixelsHigh - 1 - yOffset),
+        (image.pixelsWide - 1 - xOffset, image.pixelsHigh - 1 - yOffset),
+      ]
+      for (x, y) in cornerPoints {
+        guard let color = image.colorAt(x: x, y: y), color.alphaComponent <= 0.01 else {
+          fputs(
+            "PNG corner alpha \(colorAt(image, x: x, y: y)) exceeds 0.01 at \(x),\(y): \(path)\n",
+            stderr
+          )
+          exit(1)
+        }
+      }
     }
   }
 
@@ -46,4 +54,9 @@ for path in CommandLine.arguments.dropFirst() {
   }
 
   print("transparent rounded corners: \(path)")
+}
+
+private func colorAt(_ image: NSBitmapImageRep, x: Int, y: Int) -> String {
+  guard let color = image.colorAt(x: x, y: y) else { return "unavailable" }
+  return String(format: "%.4f", color.alphaComponent)
 }

@@ -2,7 +2,7 @@
 
 The repository's screenshots and GIFs must never depend on a user's live DSH Host, desktop, home directory, account, notifications, or browser state.
 
-`capture-product-assets.sh` launches the deterministic app fixtures and uses macOS window capture so the product PNGs retain transparent rounded corners. The script rejects any capture without an alpha channel or with an opaque corner. `preview.html` adds a second rounded clip while rendering a synthetic developer workspace. Its visible files, code, session titles, Todo text, status counts, and paths are invented for the demo. The source uses only repository-local assets and system fonts; it performs no network requests and contains no analytics.
+`capture-product-assets.sh` launches the deterministic app fixtures and uses macOS window capture so the product PNGs retain transparent rounded corners. The script rejects any capture without an alpha channel or with more than 0.01 alpha anywhere in its sampled corner regions. `preview.html` adds a second rounded clip while rendering a synthetic developer workspace. Its visible files, code, session titles, Todo text, status counts, and paths are invented for the demo. The source uses only repository-local assets and system fonts; it performs no network requests and contains no analytics.
 
 Run `./scripts/render-marketing-assets.sh` on macOS with Google Chrome and ffmpeg installed to recapture the product and create:
 

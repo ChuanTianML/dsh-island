@@ -61,6 +61,9 @@ final class IslandPanelController: NSObject, NSWindowDelegate {
     hostingController.view.wantsLayer = true
     hostingController.view.layer?.backgroundColor = NSColor.clear.cgColor
     hostingController.view.layer?.isOpaque = false
+    hostingController.view.layer?.cornerCurve = .continuous
+    hostingController.view.layer?.cornerRadius = collapsedSize.height / 2
+    hostingController.view.layer?.masksToBounds = true
     panel.contentViewController = hostingController
     restorePosition()
   }
@@ -82,6 +85,7 @@ final class IslandPanelController: NSObject, NSWindowDelegate {
   /// Resizes around a fixed top-center anchor so expansion unfolds downward.
   func setExpanded(_ expanded: Bool, animated: Bool = true) {
     let targetSize = expanded ? expandedSize : collapsedSize
+    panel.contentViewController?.view.layer?.cornerRadius = expanded ? 28 : collapsedSize.height / 2
     let oldFrame = panel.frame
     if abs(oldFrame.width - targetSize.width) < 0.5,
       abs(oldFrame.height - targetSize.height) < 0.5

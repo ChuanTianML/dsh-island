@@ -18,7 +18,7 @@ The interface follows an aeronautical-instrument aesthetic: an obsidian capsule,
 
 The memorable element is the signal rail. Each visible session contributes a short segment colored by its state; the highest-priority segment leads. It makes several concurrent Agents legible without turning the island into a dashboard.
 
-The native window and hosting surface remain transparent outside the continuous rounded capsule. Product screenshots preserve that alpha channel, and composed community artwork clips the screenshot to the same radius as a second safeguard.
+The native window and hosting surface remain fully transparent outside the continuous rounded capsule. The capsule uses its internal gradient and border for separation instead of an outer shadow, because shadow pixels clipped to the rectangular window frame become visible corner blocks on light desktops. The native hosting layer enforces the same continuous corner radius as SwiftUI. Product screenshots preserve that alpha channel, and composed community artwork clips the screenshot to the same radius as a second safeguard.
 
 ### Visual tokens
 
@@ -134,4 +134,4 @@ Not included:
 12. Given Reduce Motion is enabled, when state changes or the island expands, then no repeating pulse or spring animation is used.
 13. Given a local DSH Web instance at a non-default port, when the endpoint is saved, then the app reconnects without restart and persists the normalized URL.
 14. Given the optional deep-link plugin is absent, when a session row is clicked, then the DSH Web UI still opens and the island remains operational.
-15. Given either island state over any desktop color, when the native window or a published preview is rendered, then pixels outside the continuous rounded capsule remain transparent and no rectangular corner background is visible.
+15. Given either island state over any desktop color, when the native window or a published preview is rendered, then the corner regions outside the continuous rounded capsule have at most 0.01 alpha and no rectangular corner background is visible.
