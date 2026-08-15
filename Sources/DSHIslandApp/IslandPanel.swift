@@ -54,10 +54,14 @@ final class IslandPanelController: NSObject, NSWindowDelegate {
       .ignoresCycle,
       .stationary,
     ]
-    panel.contentViewController = NSHostingController(
+    let hostingController = NSHostingController(
       rootView: IslandView(model: model, openSettings: openSettings)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     )
+    hostingController.view.wantsLayer = true
+    hostingController.view.layer?.backgroundColor = NSColor.clear.cgColor
+    hostingController.view.layer?.isOpaque = false
+    panel.contentViewController = hostingController
     restorePosition()
   }
 
