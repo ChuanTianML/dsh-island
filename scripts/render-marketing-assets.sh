@@ -6,11 +6,18 @@ HTML_PATH="$PROJECT_ROOT/docs/marketing/preview.html"
 OUTPUT_DIR="$PROJECT_ROOT/docs/assets"
 FRAME_DIR="$PROJECT_ROOT/.marketing/gif-frames"
 CHROME_BIN="${CHROME_BIN:-/Applications/Google Chrome.app/Contents/MacOS/Google Chrome}"
+FFMPEG_BIN="${FFMPEG_BIN:-$(command -v ffmpeg || true)}"
 
 if [[ ! -x "$CHROME_BIN" ]]; then
   echo "Google Chrome was not found at $CHROME_BIN" >&2
   exit 1
 fi
+if [[ -z "$FFMPEG_BIN" || ! -x "$FFMPEG_BIN" ]]; then
+  echo "ffmpeg was not found; install it or set FFMPEG_BIN" >&2
+  exit 1
+fi
+
+"$PROJECT_ROOT/scripts/capture-product-assets.sh"
 
 mkdir -p "$OUTPUT_DIR" "$FRAME_DIR"
 rm -f "$FRAME_DIR"/*.png
@@ -58,6 +65,26 @@ render 1200 720 "mode=demo&state=attention" "$FRAME_DIR/01-attention.png"
 render 1200 720 "mode=demo&state=expanding" "$FRAME_DIR/02-expanding.png"
 render 1200 720 "mode=demo&state=expanded" "$FRAME_DIR/03-expanded.png"
 
+GIF_CONCAT="$(mktemp)"
+trap 'rm -f "$GIF_CONCAT"' EXIT
+{
+  printf "file '%s'\n" "$FRAME_DIR/00-working.png"
+  printf "duration 2.2\n"
+  printf "file '%s'\n" "$FRAME_DIR/01-attention.png"
+  printf "duration 1.6\n"
+  printf "file '%s'\n" "$FRAME_DIR/02-expanding.png"
+  printf "duration 0.5\n"
+  printf "file '%s'\n" "$FRAME_DIR/03-expanded.png"
+  printf "duration 3.2\n"
+  printf "file '%s'\n" "$FRAME_DIR/03-expanded.png"
+} >"$GIF_CONCAT"
+"$FFMPEG_BIN" -y -v error \
+  -f concat -safe 0 -i "$GIF_CONCAT" \
+  -filter_complex \
+  "[0:v]fps=10,split[frames][palette_source];[palette_source]palettegen=max_colors=128:stats_mode=diff[palette];[frames][palette]paletteuse=dither=bayer:bayer_scale=3:diff_mode=rectangle" \
+  -t 7.5 -loop 0 "$OUTPUT_DIR/dsh-island-demo.gif"
+
 echo "$OUTPUT_DIR/dsh-island-social-preview.png"
 echo "$OUTPUT_DIR/dsh-island-desktop.png"
+echo "$OUTPUT_DIR/dsh-island-demo.gif"
 echo "$FRAME_DIR"

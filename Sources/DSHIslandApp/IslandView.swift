@@ -66,7 +66,6 @@ struct IslandView: View {
           lineWidth: contrast == .increased ? 1.5 : 1
         )
     }
-    .shadow(color: Color.black.opacity(0.46), radius: 24, y: 10)
     .animation(
       reduceMotion ? .easeOut(duration: 0.12) : .spring(response: 0.32, dampingFraction: 0.86),
       value: model.isExpanded
