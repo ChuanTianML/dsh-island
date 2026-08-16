@@ -14,16 +14,27 @@ DSHIslandCore
   DSHProtocol           RPC envelopes, session summaries, Host and mux events
   StatusEngine          pure state transitions, ordering, progress and redaction
   DSHClient             read-only POST baseline and downlink WebSocket transport
+  IslandTheme           presentation tokens and persisted theme identifiers
+  IslandVectorPath      Foundation-only parser and official whale vector
 
 DSHIslandApp
   IslandViewModel       owns connection lifecycle and publishes UI snapshots
   IslandPanel           borderless floating NSPanel, positioning and resize anchoring
-  IslandView            collapsed capsule, signal rail and expanded session list
-  Preferences           endpoint, privacy, launch-at-login and reset-position controls
+  IslandView            theme-driven capsule and shared expanded session list
+  ThemeStyle            SwiftUI color, font and vector-path adapters
+  Preferences           appearance, endpoint, privacy, login and position controls
   AppDelegate           accessory-app lifecycle and menu-bar fallback
 ```
 
 `DSHIslandCore` imports Foundation only. UI code never parses wire JSON and transport code never decides presentation priority.
+
+## Theme system
+
+`IslandTheme` is the source of truth for the five presentation identifiers and their metrics, palettes, typography, and chrome selections. It contains no AppKit or SwiftUI types, so persistence and tests stay in `DSHIslandCore`. `ThemeStyle` maps those tokens to native colors, fonts, and a SwiftUI `Path` generated from the shared official DeepSeek Harness whale vector.
+
+The selected raw identifier is stored in preferences and resolves to Original Signal when it is absent or unrecognized. `AppDelegate` distributes one resolved theme to `IslandView` and `IslandPanel`; the view changes rendering while the panel reapplies dimensions, clipping radius, top-edge anchoring, screen clamping, and position persistence.
+
+Themes never branch the state engine, connection lifecycle, row ordering, actions, accessibility labels, keyboard behavior, or Reduce Motion policy. The theme-specific summary visuals and row treatments receive the same `IslandSnapshot` and invoke the same handlers.
 
 ## Data flow
 
@@ -63,7 +74,7 @@ Loopback HTTP and HTTPS endpoints are accepted by default. A non-loopback host r
 
 ## Window lifecycle
 
-The app uses accessory activation policy and a borderless `NSPanel` at floating level. It joins all Spaces and remains visible beside full-screen applications. The panel's top edge is invariant during expansion so the visual reads as a capsule unfolding downward.
+The app uses accessory activation policy and a borderless `NSPanel` at floating level. It joins all Spaces and remains visible beside full-screen applications. Each theme supplies collapsed and expanded dimensions plus a continuous corner radius. The panel's top edge is invariant during expansion and theme changes so the visual reads as a capsule unfolding downward.
 
 Saved position records both the screen identifier and normalized coordinates. On launch the position is clamped to the selected screen's visible frame; a missing screen falls back to the primary display's top center.
 
@@ -80,11 +91,12 @@ The menu-bar item is a recovery surface for show/hide, open DSH, reconnect, and 
 - completion expiry and initial-idle behavior;
 - parent/child ordering and stable aggregate counts;
 - endpoint normalization and loopback policy.
+- theme identifiers, fallback resolution, metrics, palettes, and official whale-path parsing.
 
 ### Integration tests
 
 - URLProtocol-backed tests exercise the unary DSHClient transport, response identity, and endpoint construction;
-- deterministic engine and demo fixtures drive multiple sessions through running, attention, completion, failure, privacy, and offline transitions;
+- deterministic engine and demo fixtures drive the same sessions through running, attention, completion, failure, privacy, and offline transitions in all five themes;
 - the built app runs in demo mode for screenshot and accessibility inspection;
 - a real isolated DSH Web instance verifies the current `session.list`, `events.host`, and `events.mux` wire formats.
 
@@ -94,5 +106,6 @@ The menu-bar item is a recovery surface for show/hide, open DSH, reconnect, and 
 - release `swift build` with warnings treated as errors;
 - application bundle construction and ad-hoc signature verification;
 - launch smoke plus screenshot and accessibility-tree inspection;
+- five-theme screenshot dimensions, transparent-corner alpha checks, and shared action/accessibility inspection;
 - ZIP extraction and second launch from the packaged artifact;
 - GitHub Actions build on a clean macOS runner.

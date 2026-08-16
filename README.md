@@ -11,7 +11,7 @@
 
 [简体中文](README.zh-CN.md)
 
-<img src="docs/assets/dsh-island-desktop.png" width="900" alt="DSH Island floating above a privacy-safe synthetic developer workspace">
+<img src="docs/assets/dsh-island-themes.png" width="1000" alt="Five DSH Island themes showing the same privacy-safe synthetic session fleet">
 
 <sub>Every screenshot and recording uses deterministic synthetic sessions—never a personal desktop, path, account, or live conversation.</sub>
 
@@ -41,6 +41,20 @@ The signal rail is a compact map of the visible fleet. Amber means human input, 
   <img src="docs/assets/dsh-island-collapsed.png" width="400" alt="DSH Island collapsed capsule">
 </div>
 
+## Appearance
+
+One status model, one set of actions, and one accessibility model power five selectable presentations. Changing a theme never changes session ordering, progress semantics, controls, VoiceOver labels, keyboard behavior, or Reduce Motion support.
+
+| Theme | Character |
+| --- | --- |
+| Original Signal | The shipped obsidian instrument with cards and a segmented fleet rail |
+| Quiet Glass | A calm native-glass treatment with rings and restrained dividers |
+| Orbital Deck | A dense technical console with an orbit summary and grid rows |
+| Editorial | A light typographic ledger with numbered sessions and print-like structure |
+| Pulse Garden | A soft deep-green surface with organic status veins |
+
+Every theme carries the official black DeepSeek Harness whale mark. Choose one in **Settings → Appearance**; the selection is applied immediately and persists across launches.
+
 ## Truthful progress
 
 DSH does not expose a universal percentage or ETA for an Agent run. DSH Island therefore keeps execution state and progress separate:
@@ -58,12 +72,12 @@ Connected priority is `needs attention → failure → running → completed →
 
 ### Manual install
 
-1. Download `DSH-Island-0.1.0-macOS-universal.zip` from the [latest release](https://github.com/ChuanTianML/dsh-island/releases/latest).
-2. Optionally download the adjacent `.sha256` file and run `shasum -a 256 -c DSH-Island-0.1.0-macOS-universal.zip.sha256`.
+1. Download `DSH-Island-0.2.0-macOS-universal.zip` from the [latest release](https://github.com/ChuanTianML/dsh-island/releases/latest).
+2. Optionally download the adjacent `.sha256` file and run `shasum -a 256 -c DSH-Island-0.2.0-macOS-universal.zip.sha256`.
 3. Unzip it and move **DSH Island.app** to Applications.
 4. Start DSH Web, then open DSH Island. The default endpoint is `http://127.0.0.1:3080`.
 
-The 0.1 release is ad-hoc signed, not Apple-notarized. On first launch, macOS may require Control-clicking the app and choosing **Open**. The release runs natively on both Apple silicon and Intel Macs.
+The 0.2 release is ad-hoc signed, not Apple-notarized. On first launch, macOS may require Control-clicking the app and choosing **Open**. The release runs natively on both Apple silicon and Intel Macs.
 
 Typical DSH commands are:
 
@@ -84,6 +98,7 @@ No configuration is required when DSH uses the default loopback endpoint. Open S
 | DSH endpoint | Connect to a different local port or trusted Host |
 | Allow a non-loopback endpoint | Required before any remote address is accepted |
 | Privacy mode | Alias titles and hide Todo text, tool names, errors, and connection details |
+| Appearance | Choose Original Signal, Quiet Glass, Orbital Deck, Editorial, or Pulse Garden |
 | Launch at login | Register the app with macOS login items |
 | Reset island position | Return the panel to its default display-relative position |
 
@@ -96,7 +111,7 @@ Clicking a row opens `?session=<id>`. The Web UI opens safely without extra soft
 A coding agent can download, verify, install, launch, and configure the app. Paste this prompt into an agent running on the target Mac:
 
 ```text
-Install DSH Island v0.1.0 from https://github.com/ChuanTianML/dsh-island/releases/tag/v0.1.0 on this Mac.
+Install DSH Island v0.2.0 from https://github.com/ChuanTianML/dsh-island/releases/tag/v0.2.0 on this Mac.
 
 1. Require macOS 13 or later. Download the universal ZIP and its .sha256 file, then verify them with shasum -a 256 -c.
 2. Check whether /Applications/DSH Island.app already exists. Ask me before replacing an existing installation.
@@ -133,14 +148,15 @@ Run the deterministic visual fixture without a DSH Host:
 ```sh
 swift run dsh-island --demo-working
 swift run dsh-island --demo-expanded
+swift run dsh-island --demo-expanded --theme editorial
 ```
 
-The committed community media is rendered from the same synthetic fixtures. Run `./scripts/render-marketing-assets.sh` to regenerate the social preview, desktop scene, and GIF source frames. See [`docs/marketing/README.md`](docs/marketing/README.md) for its privacy rules.
+The committed community media is rendered from the same synthetic fixtures. Run `./scripts/render-marketing-assets.sh` to regenerate the five-theme board, social preview, desktop scene, and GIF source frames. See [`docs/marketing/README.md`](docs/marketing/README.md) for its privacy rules.
 
-See [product design](docs/product-design.md), [architecture](docs/architecture.md), and the [0.1 validation record](docs/validation.md) for the state semantics and verification evidence.
+See [product design](docs/product-design.md), [architecture](docs/architecture.md), and the [validation record](docs/validation.md) for the state semantics and verification evidence.
 
 ## Scope
 
-Version 0.1 targets macOS. Windows/Linux surfaces, interactive approvals, transcripts, sounds, avatars, pet skins, fabricated ETA, and model steering are intentionally outside this release.
+Version 0.2 targets macOS. Windows/Linux surfaces, interactive approvals, transcripts, sounds, avatars, pet skins, fabricated ETA, and model steering are intentionally outside this release.
 
 Contributions are welcome; start with [CONTRIBUTING.md](CONTRIBUTING.md). DSH Island is available under the [MIT License](LICENSE).

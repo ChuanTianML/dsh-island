@@ -2,54 +2,25 @@ import AppKit
 import DSHIslandCore
 import SwiftUI
 
-private enum IslandPalette {
-  static let running = Color(red: 0.33, green: 0.84, blue: 1.00)
-  static let attention = Color(red: 1.00, green: 0.72, blue: 0.30)
-  static let failure = Color(red: 1.00, green: 0.40, blue: 0.37)
-  static let completed = Color(red: 0.38, green: 0.90, blue: 0.65)
-  static let idle = Color(red: 0.54, green: 0.58, blue: 0.64)
-  static let offline = Color(red: 0.49, green: 0.52, blue: 0.60)
-  static let surfaceTop = Color(red: 0.055, green: 0.071, blue: 0.10)
-  static let surfaceBottom = Color(red: 0.018, green: 0.024, blue: 0.038)
-
-  static func color(for status: IslandStatus) -> Color {
-    switch status {
-    case .attention: return attention
-    case .failure: return failure
-    case .running: return running
-    case .completed: return completed
-    case .idle: return idle
-    case .offline: return offline
-    }
-  }
-
-  static func symbol(for status: IslandStatus) -> String {
-    switch status {
-    case .attention: return "exclamationmark"
-    case .failure: return "xmark"
-    case .running: return "waveform.path"
-    case .completed: return "checkmark"
-    case .idle: return "minus"
-    case .offline: return "bolt.slash"
-    }
-  }
-}
-
 /// The collapsed capsule and expanded all-session instrument.
 struct IslandView: View {
   @ObservedObject var model: IslandViewModel
+  @ObservedObject var preferences: PreferencesStore
   let openSettings: () -> Void
 
   @Environment(\.accessibilityReduceMotion) private var reduceMotion
   @Environment(\.colorSchemeContrast) private var contrast
 
+  private var theme: IslandTheme { preferences.theme }
+
   var body: some View {
     VStack(spacing: 0) {
       header
-        .frame(height: 68)
+        .frame(height: CGFloat(theme.metrics.collapsedHeight))
       if model.isExpanded {
-        SignalRail(snapshot: model.snapshot)
-          .padding(.horizontal, 18)
+        AggregateSummary(snapshot: model.snapshot, theme: theme)
+          .frame(height: CGFloat(theme.metrics.summaryHeight))
+          .padding(.horizontal, CGFloat(theme.metrics.headerPadding))
           .transition(.opacity)
         sessionList
           .transition(.opacity.combined(with: .move(edge: .top)))
@@ -57,58 +28,90 @@ struct IslandView: View {
           .transition(.opacity)
       }
     }
-    .background(background)
-    .clipShape(RoundedRectangle(cornerRadius: model.isExpanded ? 28 : 34, style: .continuous))
+    .background { IslandBackground(theme: theme, status: model.snapshot.aggregateStatus) }
+    .clipShape(islandShape)
     .overlay {
-      RoundedRectangle(cornerRadius: model.isExpanded ? 28 : 34, style: .continuous)
-        .strokeBorder(
-          Color.white.opacity(contrast == .increased ? 0.34 : 0.13),
-          lineWidth: contrast == .increased ? 1.5 : 1
-        )
+      islandShape.strokeBorder(
+        (contrast == .increased ? theme.palette.borderHighContrast : theme.palette.border)
+          .swiftUIColor,
+        lineWidth: contrast == .increased ? 1.5 : 1)
     }
-    .animation(
-      reduceMotion ? .easeOut(duration: 0.12) : .spring(response: 0.32, dampingFraction: 0.86),
-      value: model.isExpanded
-    )
-    .preferredColorScheme(.dark)
+    .animation(expansionAnimation, value: model.isExpanded)
+    .animation(themeAnimation, value: theme)
+    .preferredColorScheme(theme.preferredColorScheme)
+  }
+
+  private var islandShape: RoundedRectangle {
+    RoundedRectangle(
+      cornerRadius: CGFloat(
+        model.isExpanded
+          ? theme.metrics.expandedCornerRadius : theme.metrics.collapsedCornerRadius),
+      style: .continuous)
+  }
+
+  private var expansionAnimation: Animation? {
+    reduceMotion ? .easeOut(duration: 0.12) : .spring(response: 0.32, dampingFraction: 0.86)
+  }
+
+  private var themeAnimation: Animation? {
+    reduceMotion ? nil : .easeInOut(duration: 0.24)
   }
 
   private var header: some View {
-    HStack(spacing: 13) {
-      BrandMark(status: model.snapshot.aggregateStatus)
+    HStack(spacing: max(10, CGFloat(theme.metrics.headerPadding) * 0.76)) {
+      WhaleMark(theme: theme, status: model.snapshot.aggregateStatus)
 
-      VStack(alignment: .leading, spacing: 3) {
+      VStack(alignment: .leading, spacing: theme == .editorial ? 1 : 3) {
         Text(aggregateTitle)
-          .font(.system(size: 15, weight: .semibold, design: .serif))
-          .foregroundStyle(.white)
+          .font(
+            theme.typography.titleFace.swiftUIFont(
+              size: theme.typography.titleSize,
+              weight: theme.typography.titleWeight))
+          .foregroundStyle(theme.palette.primaryText.swiftUIColor)
           .lineLimit(1)
-        Text(aggregateSubtitle)
-          .font(.system(size: 10.5, weight: .medium, design: .monospaced))
-          .foregroundStyle(IslandPalette.color(for: model.snapshot.aggregateStatus))
-          .textCase(.uppercase)
+          .minimumScaleFactor(0.82)
+          .allowsTightening(true)
+        Text(styledSubtitle)
+          .font(
+            theme.typography.subtitleFace.swiftUIFont(
+              size: theme.typography.subtitleSize,
+              weight: .medium))
+          .tracking(CGFloat(theme.typography.subtitleTracking))
+          .foregroundStyle(theme.palette.color(for: model.snapshot.aggregateStatus).swiftUIColor)
           .lineLimit(1)
       }
+      .layoutPriority(1)
 
       Spacer(minLength: 8)
 
       if !model.isExpanded {
-        SignalRail(snapshot: model.snapshot)
-          .frame(width: 82)
+        AggregateSummary(snapshot: model.snapshot, theme: theme)
+          .frame(
+            minWidth: 54,
+            idealWidth: max(70, CGFloat(theme.metrics.collapsedWidth) * 0.205),
+            maxWidth: max(70, CGFloat(theme.metrics.collapsedWidth) * 0.205))
+          .frame(height: max(4, CGFloat(theme.metrics.summaryHeight)))
       }
 
       Image(systemName: model.isExpanded ? "chevron.up" : "chevron.down")
         .font(.system(size: 11, weight: .bold))
-        .foregroundStyle(.white.opacity(0.72))
+        .foregroundStyle(theme.palette.primaryText.swiftUIColor.opacity(0.72))
         .frame(width: 30, height: 30)
-        .background(Color.white.opacity(0.07), in: Circle())
+        .background(theme.palette.controlFill.swiftUIColor, in: Circle())
         .contentShape(Circle())
         .accessibilityHidden(true)
     }
-    .padding(.horizontal, 17)
-    .contentShape(Rectangle())
-    .onTapGesture {
-      model.toggleExpanded()
+    .padding(.horizontal, CGFloat(theme.metrics.headerPadding))
+    .overlay(alignment: .bottom) {
+      if theme.chrome.showsHeaderSeparator {
+        Rectangle()
+          .fill(theme.palette.separator.swiftUIColor)
+          .frame(height: 1)
+          .padding(.horizontal, CGFloat(theme.metrics.headerPadding))
+      }
     }
+    .contentShape(Rectangle())
+    .onTapGesture { model.toggleExpanded() }
     .accessibilityHint(model.isExpanded ? "Collapse" : "Show all sessions")
     .accessibilityAddTraits(.isButton)
     .accessibilityElement(children: .combine)
@@ -117,7 +120,7 @@ struct IslandView: View {
 
   private var sessionList: some View {
     ScrollView {
-      LazyVStack(spacing: 7) {
+      LazyVStack(spacing: CGFloat(theme.metrics.rowSpacing)) {
         if model.snapshot.sessions.isEmpty {
           VStack(spacing: 9) {
             Image(
@@ -125,68 +128,64 @@ struct IslandView: View {
                 ? "moon.stars" : "antenna.radiowaves.left.and.right.slash"
             )
             .font(.system(size: 21, weight: .light))
-            .foregroundStyle(.secondary)
+            .foregroundStyle(theme.palette.tertiaryText.swiftUIColor)
             Text(model.snapshot.connected ? "No sessions yet" : "Waiting for DSH")
-              .font(.system(size: 13, weight: .medium))
-              .foregroundStyle(.secondary)
+              .font(
+                theme.typography.rowTitleFace.swiftUIFont(
+                  size: theme.typography.rowTitleSize,
+                  weight: theme.typography.rowTitleWeight))
+              .foregroundStyle(theme.palette.secondaryText.swiftUIColor)
           }
           .frame(maxWidth: .infinity)
           .padding(.vertical, 46)
         } else {
-          ForEach(model.snapshot.sessions) { session in
+          ForEach(Array(model.snapshot.sessions.enumerated()), id: \.element.id) { index, session in
             Button {
               model.openDSH(sessionID: session.id)
             } label: {
-              SessionRow(session: session)
+              SessionRow(session: session, index: index, theme: theme)
             }
             .buttonStyle(.plain)
             .help("Open this session in DSH")
           }
         }
       }
-      .padding(.horizontal, 12)
-      .padding(.vertical, 12)
+      .padding(.horizontal, CGFloat(theme.metrics.listPadding))
+      .padding(.vertical, CGFloat(theme.metrics.listVerticalPadding))
     }
     .frame(maxHeight: .infinity)
   }
 
   private var toolbar: some View {
     HStack(spacing: 5) {
-      ToolbarButton(symbol: "arrow.clockwise", label: "Refresh") { model.refreshNow() }
-      ToolbarButton(symbol: "arrow.up.right.square", label: "Open DSH") { model.openDSH() }
-      ToolbarButton(symbol: "gearshape", label: "Settings", action: openSettings)
+      ToolbarButton(symbol: "arrow.clockwise", label: "Refresh", theme: theme) {
+        model.refreshNow()
+      }
+      ToolbarButton(symbol: "arrow.up.right.square", label: "Open DSH", theme: theme) {
+        model.openDSH()
+      }
+      ToolbarButton(symbol: "gearshape", label: "Settings", theme: theme, action: openSettings)
       Spacer()
-      Text("READ ONLY")
-        .font(.system(size: 9, weight: .semibold, design: .monospaced))
-        .tracking(1.2)
-        .foregroundStyle(.white.opacity(0.33))
-      ToolbarButton(symbol: "chevron.up", label: "Collapse") { model.toggleExpanded() }
+      if theme.chrome.showsToolbarNote {
+        Text("READ ONLY")
+          .font(.system(size: 9, weight: .semibold, design: .monospaced))
+          .tracking(1.2)
+          .foregroundStyle(theme.palette.tertiaryText.swiftUIColor)
+      }
+      ToolbarButton(symbol: "chevron.up", label: "Collapse", theme: theme) {
+        model.toggleExpanded()
+      }
     }
-    .padding(.horizontal, 13)
-    .frame(height: 48)
-    .background(Color.white.opacity(0.025))
+    .padding(.horizontal, max(12, CGFloat(theme.metrics.listPadding)))
+    .frame(height: CGFloat(theme.metrics.toolbarHeight))
+    .background(theme.palette.controlFill.swiftUIColor.opacity(0.42))
     .overlay(alignment: .top) {
-      Rectangle().fill(Color.white.opacity(0.07)).frame(height: 1)
+      Rectangle().fill(theme.palette.separator.swiftUIColor).frame(height: 1)
     }
   }
 
-  private var background: some View {
-    ZStack {
-      VisualEffectView()
-      LinearGradient(
-        colors: [
-          IslandPalette.surfaceTop.opacity(0.96), IslandPalette.surfaceBottom.opacity(0.985),
-        ],
-        startPoint: .top,
-        endPoint: .bottom
-      )
-      RadialGradient(
-        colors: [IslandPalette.color(for: model.snapshot.aggregateStatus).opacity(0.10), .clear],
-        center: .topLeading,
-        startRadius: 0,
-        endRadius: 270
-      )
-    }
+  private var styledSubtitle: String {
+    theme.typography.subtitleUppercase ? aggregateSubtitle.uppercased() : aggregateSubtitle
   }
 
   private var aggregateTitle: String {
@@ -227,150 +226,405 @@ struct IslandView: View {
   }
 }
 
-private struct BrandMark: View {
+private struct IslandBackground: View {
+  let theme: IslandTheme
   let status: IslandStatus
 
   var body: some View {
     ZStack {
-      RoundedRectangle(cornerRadius: 11, style: .continuous)
-        .fill(Color.white.opacity(0.055))
-      RoundedRectangle(cornerRadius: 11, style: .continuous)
-        .strokeBorder(IslandPalette.color(for: status).opacity(0.42), lineWidth: 1)
-      VStack(spacing: 2) {
-        HStack(spacing: 2) {
-          ForEach(0..<3, id: \.self) { index in
-            Capsule()
-              .fill(index == 0 ? IslandPalette.color(for: status) : Color.white.opacity(0.24))
-              .frame(width: index == 0 ? 11 : 5, height: 3)
-          }
-        }
-        Text("DSH")
-          .font(.system(size: 9, weight: .bold, design: .monospaced))
-          .tracking(0.6)
-          .foregroundStyle(.white.opacity(0.88))
+      if theme.chrome.usesBackgroundBlur {
+        VisualEffectView()
       }
+      LinearGradient(
+        colors: [
+          theme.palette.surfaceTop.swiftUIColor,
+          theme.palette.surfaceBottom.swiftUIColor,
+        ],
+        startPoint: .top,
+        endPoint: .bottom)
+      RadialGradient(
+        colors: [
+          theme.palette.color(for: status).swiftUIColor.opacity(theme.palette.accentRowOpacity),
+          .clear,
+        ],
+        center: .topLeading,
+        startRadius: 0,
+        endRadius: CGFloat(theme.metrics.expandedWidth) * 0.54)
     }
-    .frame(width: 42, height: 42)
+  }
+}
+
+private struct WhaleMark: View {
+  let theme: IslandTheme
+  let status: IslandStatus
+
+  var body: some View {
+    ZStack {
+      RoundedRectangle(
+        cornerRadius: CGFloat(theme.metrics.brandCornerRadius),
+        style: .continuous
+      )
+      .fill(theme.palette.brandFill.swiftUIColor)
+      RoundedRectangle(
+        cornerRadius: CGFloat(theme.metrics.brandCornerRadius),
+        style: .continuous
+      )
+      .strokeBorder(
+        (theme.palette.brandStroke ?? theme.palette.color(for: status).withOpacity(0.42))
+          .swiftUIColor,
+        lineWidth: 1)
+      WhaleShape()
+        .fill(theme.palette.whaleFill.swiftUIColor)
+        .padding(CGFloat(theme.metrics.brandTileSize) * 0.19)
+    }
+    .frame(
+      width: CGFloat(theme.metrics.brandTileSize),
+      height: CGFloat(theme.metrics.brandTileSize))
     .accessibilityHidden(true)
   }
 }
 
-private struct SignalRail: View {
+private struct AggregateSummary: View {
   let snapshot: IslandSnapshot
+  let theme: IslandTheme
 
   var body: some View {
-    GeometryReader { proxy in
-      let statuses = Array(displayStatuses.prefix(18))
-      let spacing: CGFloat = 3
-      let totalSpacing = spacing * CGFloat(max(0, statuses.count - 1))
-      let segmentWidth = max(3, (proxy.size.width - totalSpacing) / CGFloat(max(1, statuses.count)))
-      HStack(spacing: spacing) {
-        ForEach(Array(statuses.enumerated()), id: \.offset) { _, status in
-          Capsule()
-            .fill(IslandPalette.color(for: status))
-            .frame(width: segmentWidth, height: 4)
-            .shadow(color: IslandPalette.color(for: status).opacity(0.34), radius: 3)
-        }
+    Group {
+      switch theme.chrome.summaryVisual {
+      case .signalRail:
+        SignalRail(statuses: displayStatuses, theme: theme)
+      case .constellation:
+        ConstellationSummary(statuses: displayStatuses, theme: theme)
+      case .orbit:
+        OrbitSummary(statuses: displayStatuses, theme: theme)
+      case .count:
+        CountSummary(snapshot: snapshot, statuses: displayStatuses, theme: theme)
+      case .veins:
+        VeinSummary(statuses: displayStatuses, theme: theme)
       }
-      .frame(maxWidth: .infinity, alignment: .leading)
     }
-    .frame(height: 4)
     .accessibilityHidden(true)
   }
 
   private var displayStatuses: [IslandStatus] {
     if !snapshot.connected { return [.offline] }
-    let statuses = snapshot.sessions.map(\.status).sorted { priority($0) < priority($1) }
+    let statuses = snapshot.sessions.map(\.status).sorted { statusPriority($0) < statusPriority($1) }
     return statuses.isEmpty ? [.idle] : statuses
   }
+}
 
-  private func priority(_ status: IslandStatus) -> Int {
-    switch status {
-    case .attention: return 0
-    case .failure: return 1
-    case .running: return 2
-    case .completed: return 3
-    case .idle: return 4
-    case .offline: return 5
+private struct SignalRail: View {
+  let statuses: [IslandStatus]
+  let theme: IslandTheme
+
+  var body: some View {
+    GeometryReader { proxy in
+      let visible = Array(statuses.prefix(18))
+      let spacing: CGFloat = 3
+      let totalSpacing = spacing * CGFloat(max(0, visible.count - 1))
+      let width = max(3, (proxy.size.width - totalSpacing) / CGFloat(max(1, visible.count)))
+      HStack(spacing: spacing) {
+        ForEach(Array(visible.enumerated()), id: \.offset) { _, status in
+          Capsule()
+            .fill(theme.palette.color(for: status).swiftUIColor)
+            .frame(width: width, height: min(4, proxy.size.height))
+        }
+      }
+      .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
+    }
+  }
+}
+
+private struct ConstellationSummary: View {
+  let statuses: [IslandStatus]
+  let theme: IslandTheme
+
+  var body: some View {
+    Canvas { context, size in
+      let visible = Array(statuses.prefix(12))
+      let count = max(1, visible.count)
+      var connector = Path()
+      for (index, status) in visible.enumerated() {
+        let fraction = count == 1 ? 0.5 : CGFloat(index) / CGFloat(count - 1)
+        let point = CGPoint(
+          x: 2 + fraction * max(0, size.width - 4),
+          y: size.height * (index.isMultiple(of: 2) ? 0.35 : 0.65))
+        if index == 0 { connector.move(to: point) } else { connector.addLine(to: point) }
+        let diameter = max(3, min(5, size.height * 0.7))
+        context.fill(
+          Path(
+            ellipseIn: CGRect(
+              x: point.x - diameter / 2,
+              y: point.y - diameter / 2,
+              width: diameter,
+              height: diameter)),
+          with: .color(theme.palette.color(for: status).swiftUIColor))
+      }
+      context.stroke(
+        connector,
+        with: .color(theme.palette.separator.swiftUIColor),
+        lineWidth: 1)
+    }
+  }
+}
+
+private struct OrbitSummary: View {
+  let statuses: [IslandStatus]
+  let theme: IslandTheme
+
+  var body: some View {
+    Canvas { context, size in
+      let centerX = size.width / 2
+      let centerY = size.height / 2
+      let orbitWidth = max(CGFloat.zero, size.width - 2)
+      let orbitHeight = max(CGFloat.zero, size.height - 2)
+      let outerRect = CGRect(x: 1, y: 1, width: orbitWidth, height: orbitHeight)
+      let separatorColor = theme.palette.separator.swiftUIColor
+      context.stroke(
+        Path(ellipseIn: outerRect),
+        with: .color(separatorColor),
+        lineWidth: 1)
+      let visible = Array(statuses.prefix(10))
+      let itemCount = max(1, visible.count)
+      let radiusX = max(CGFloat.zero, centerX - 4)
+      let radiusY = max(CGFloat.zero, centerY - 3)
+      for (index, status) in visible.enumerated() {
+        let angle = CGFloat(index) / CGFloat(itemCount) * .pi * 2 - .pi / 2
+        let pointX = centerX + cos(angle) * radiusX
+        let pointY = centerY + sin(angle) * radiusY
+        let dotRect = CGRect(x: pointX - 2, y: pointY - 2, width: 4, height: 4)
+        let dotColor = theme.palette.color(for: status).swiftUIColor
+        context.fill(Path(ellipseIn: dotRect), with: .color(dotColor))
+      }
+    }
+  }
+}
+
+private struct CountSummary: View {
+  let snapshot: IslandSnapshot
+  let statuses: [IslandStatus]
+  let theme: IslandTheme
+
+  var body: some View {
+    HStack(spacing: 8) {
+      Text(String(format: "%02d", snapshot.sessions.count))
+        .font(theme.typography.titleFace.swiftUIFont(size: 15, weight: .semibold))
+        .foregroundStyle(theme.palette.primaryText.swiftUIColor)
+      Text("SESSIONS")
+        .font(.system(size: 8, weight: .medium, design: .monospaced))
+        .tracking(1)
+        .foregroundStyle(theme.palette.tertiaryText.swiftUIColor)
+      Spacer(minLength: 4)
+      HStack(spacing: 3) {
+        ForEach(Array(statuses.prefix(8).enumerated()), id: \.offset) { _, status in
+          Rectangle()
+            .fill(theme.palette.color(for: status).swiftUIColor)
+            .frame(width: 7, height: 2)
+        }
+      }
+    }
+  }
+}
+
+private struct VeinSummary: View {
+  let statuses: [IslandStatus]
+  let theme: IslandTheme
+
+  var body: some View {
+    Canvas { context, size in
+      let visible = Array(statuses.prefix(8))
+      let count = max(1, visible.count)
+      for (index, status) in visible.enumerated() {
+        let fraction = CGFloat(index + 1) / CGFloat(count + 1)
+        let end = CGPoint(
+          x: size.width * fraction,
+          y: size.height * (index.isMultiple(of: 2) ? 0.25 : 0.75))
+        var vein = Path()
+        vein.move(to: CGPoint(x: size.width / 2, y: size.height / 2))
+        vein.addCurve(
+          to: end,
+          control1: CGPoint(x: size.width * 0.42, y: size.height * fraction),
+          control2: CGPoint(x: size.width * fraction, y: size.height / 2))
+        context.stroke(
+          vein,
+          with: .color(theme.palette.color(for: status).swiftUIColor.opacity(0.82)),
+          lineWidth: index == 0 ? 2 : 1)
+        context.fill(
+          Path(ellipseIn: CGRect(x: end.x - 2, y: end.y - 2, width: 4, height: 4)),
+          with: .color(theme.palette.color(for: status).swiftUIColor))
+      }
     }
   }
 }
 
 private struct SessionRow: View {
   let session: SessionDisplayItem
+  let index: Int
+  let theme: IslandTheme
 
   var body: some View {
     TimelineView(.periodic(from: .now, by: 1)) { context in
-      HStack(alignment: .top, spacing: 11) {
-        StatusGlyph(status: session.status)
+      HStack(alignment: .top, spacing: rowSpacing) {
+        StatusGlyph(status: session.status, index: index, theme: theme)
 
-        VStack(alignment: .leading, spacing: 6) {
+        VStack(alignment: .leading, spacing: contentSpacing) {
           HStack(alignment: .firstTextBaseline, spacing: 8) {
             Text(session.title)
-              .font(.system(size: 13.5, weight: .semibold))
-              .foregroundStyle(.white.opacity(0.94))
+              .font(
+                theme.typography.rowTitleFace.swiftUIFont(
+                  size: theme.typography.rowTitleSize,
+                  weight: theme.typography.rowTitleWeight))
+              .foregroundStyle(theme.palette.primaryText.swiftUIColor.opacity(0.94))
               .lineLimit(1)
             Spacer(minLength: 5)
             Text(statusText)
-              .font(.system(size: 9.5, weight: .bold, design: .monospaced))
+              .font(
+                IslandFontFace.monospaced.swiftUIFont(
+                  size: theme.typography.rowStatusSize,
+                  weight: .bold))
               .tracking(0.4)
-              .foregroundStyle(IslandPalette.color(for: session.status))
+              .foregroundStyle(theme.palette.color(for: session.status).swiftUIColor)
           }
 
           HStack(spacing: 6) {
-            Text(detailText)
-              .font(.system(size: 11.5, weight: .regular))
-              .foregroundStyle(.white.opacity(0.56))
+            Text(styledDetailText)
+              .font(
+                theme.typography.rowDetailFace.swiftUIFont(
+                  size: theme.typography.rowDetailSize,
+                  weight: .regular))
+              .foregroundStyle(theme.palette.secondaryText.swiftUIColor)
               .lineLimit(1)
             Spacer(minLength: 4)
             Text(elapsedText(now: context.date))
-              .font(.system(size: 10, weight: .medium, design: .monospaced))
-              .foregroundStyle(.white.opacity(0.38))
+              .font(
+                IslandFontFace.monospaced.swiftUIFont(
+                  size: theme.typography.rowTimeSize,
+                  weight: .medium))
+              .foregroundStyle(theme.palette.tertiaryText.swiftUIColor)
           }
 
           if let progress = session.progress {
             HStack(spacing: 8) {
               ProgressRail(
                 fraction: progress.fraction,
-                color: IslandPalette.color(for: session.status)
-              )
+                color: theme.palette.color(for: session.status).swiftUIColor,
+                theme: theme)
               Text("\(progress.completed)/\(progress.total)")
-                .font(.system(size: 9.5, weight: .semibold, design: .monospaced))
-                .foregroundStyle(.white.opacity(0.46))
+                .font(
+                  IslandFontFace.monospaced.swiftUIFont(
+                    size: theme.typography.rowStatusSize,
+                    weight: .semibold))
+                .foregroundStyle(theme.palette.tertiaryText.swiftUIColor)
             }
           } else if session.status == .running {
             HStack(spacing: 7) {
               ProgressView()
                 .controlSize(.mini)
+                .tint(theme.palette.color(for: session.status).swiftUIColor)
               Text("Progress not published")
-                .font(.system(size: 9.5, weight: .medium, design: .monospaced))
-                .foregroundStyle(.white.opacity(0.36))
+                .font(
+                  IslandFontFace.monospaced.swiftUIFont(
+                    size: theme.typography.rowStatusSize,
+                    weight: .medium))
+                .foregroundStyle(theme.palette.tertiaryText.swiftUIColor)
             }
           }
         }
       }
       .padding(.leading, CGFloat(session.depth) * 18)
-      .padding(.horizontal, 11)
-      .padding(.vertical, 10)
-      .background(rowBackground, in: RoundedRectangle(cornerRadius: 15, style: .continuous))
-      .overlay {
-        RoundedRectangle(cornerRadius: 15, style: .continuous)
-          .strokeBorder(IslandPalette.color(for: session.status).opacity(0.12), lineWidth: 1)
-      }
-      .contentShape(RoundedRectangle(cornerRadius: 15, style: .continuous))
+      .padding(.horizontal, rowHorizontalPadding)
+      .padding(.vertical, rowVerticalPadding)
+      .frame(minHeight: CGFloat(theme.metrics.rowHeight))
+      .background { rowBackground }
+      .overlay { rowOverlay }
+      .contentShape(Rectangle())
       .accessibilityElement(children: .combine)
       .accessibilityLabel(
         "\(session.title), \(statusText), \(detailText), \(elapsedText(now: context.date))")
     }
   }
 
-  private var rowBackground: Color {
+  private var rowSpacing: CGFloat {
+    switch theme.chrome.rowStyle {
+    case .ledger: return 9
+    case .grid: return 10
+    default: return 11
+    }
+  }
+
+  private var contentSpacing: CGFloat {
+    switch theme.chrome.rowStyle {
+    case .card: return 6
+    case .divider, .grid, .ledger, .vein: return 4
+    }
+  }
+
+  private var rowHorizontalPadding: CGFloat {
+    switch theme.chrome.rowStyle {
+    case .card, .vein: return 11
+    case .divider: return 6
+    case .grid: return 8
+    case .ledger: return 4
+    }
+  }
+
+  private var rowVerticalPadding: CGFloat {
+    switch theme.chrome.rowStyle {
+    case .card: return 10
+    case .divider, .grid, .ledger, .vein: return 8
+    }
+  }
+
+  @ViewBuilder private var rowBackground: some View {
+    let color = accentAwareRowColor
+    switch theme.chrome.rowStyle {
+    case .card:
+      RoundedRectangle(cornerRadius: CGFloat(theme.metrics.rowCornerRadius), style: .continuous)
+        .fill(color)
+    case .divider, .grid, .ledger:
+      Rectangle().fill(color)
+    case .vein:
+      RoundedRectangle(cornerRadius: CGFloat(theme.metrics.rowCornerRadius), style: .continuous)
+        .fill(color)
+    }
+  }
+
+  @ViewBuilder private var rowOverlay: some View {
+    let statusColor = theme.palette.color(for: session.status).swiftUIColor
+    switch theme.chrome.rowStyle {
+    case .card:
+      RoundedRectangle(cornerRadius: CGFloat(theme.metrics.rowCornerRadius), style: .continuous)
+        .strokeBorder(statusColor.opacity(0.12), lineWidth: 1)
+    case .divider:
+      VStack { Spacer(); Rectangle().fill(theme.palette.separator.swiftUIColor).frame(height: 1) }
+    case .grid:
+      ZStack(alignment: .leading) {
+        Rectangle().strokeBorder(theme.palette.separator.swiftUIColor, lineWidth: 1)
+        Rectangle().fill(statusColor).frame(width: 2)
+      }
+    case .ledger:
+      VStack { Spacer(); Rectangle().fill(theme.palette.separator.swiftUIColor).frame(height: 1) }
+    case .vein:
+      RoundedRectangle(cornerRadius: CGFloat(theme.metrics.rowCornerRadius), style: .continuous)
+        .strokeBorder(statusColor.opacity(0.18), lineWidth: 1)
+        .overlay(alignment: .leading) {
+          Capsule().fill(statusColor.opacity(0.76)).frame(width: 2).padding(.vertical, 10)
+        }
+    }
+  }
+
+  private var accentAwareRowColor: Color {
     switch session.status {
     case .attention, .failure:
-      return IslandPalette.color(for: session.status).opacity(0.07)
+      return theme.palette.color(for: session.status).swiftUIColor
+        .opacity(theme.palette.accentRowOpacity)
     default:
-      return Color.white.opacity(0.035)
+      return theme.palette.rowBackground.swiftUIColor
     }
+  }
+
+  private var styledDetailText: String {
+    theme.typography.rowDetailUppercase ? detailText.uppercased() : detailText
   }
 
   private var statusText: String {
@@ -452,54 +706,119 @@ private struct SessionRow: View {
 private struct ProgressRail: View {
   let fraction: Double
   let color: Color
+  let theme: IslandTheme
 
   var body: some View {
     GeometryReader { proxy in
       ZStack(alignment: .leading) {
-        Capsule().fill(Color.white.opacity(0.13))
+        Capsule().fill(theme.palette.separator.swiftUIColor)
         Capsule()
           .fill(color)
           .frame(width: max(4, proxy.size.width * min(max(fraction, 0), 1)))
-          .shadow(color: color.opacity(0.28), radius: 3)
       }
     }
-    .frame(height: 4)
+    .frame(height: theme.chrome.rowStyle == .ledger ? 2 : 4)
     .accessibilityHidden(true)
   }
 }
 
 private struct StatusGlyph: View {
   let status: IslandStatus
+  let index: Int
+  let theme: IslandTheme
 
   var body: some View {
-    ZStack {
-      Circle().fill(IslandPalette.color(for: status).opacity(0.13))
-      Circle().strokeBorder(IslandPalette.color(for: status).opacity(0.34), lineWidth: 1)
-      Image(systemName: IslandPalette.symbol(for: status))
-        .font(.system(size: 10, weight: .bold))
-        .foregroundStyle(IslandPalette.color(for: status))
+    glyph
+      .frame(width: glyphSize, height: glyphSize)
+      .accessibilityHidden(true)
+  }
+
+  @ViewBuilder private var glyph: some View {
+    let color = theme.palette.color(for: status).swiftUIColor
+    switch theme.chrome.glyphStyle {
+    case .symbol:
+      ZStack {
+        Circle().fill(color.opacity(0.13))
+        Circle().strokeBorder(color.opacity(0.34), lineWidth: 1)
+        Image(systemName: statusSymbol(status))
+          .font(.system(size: 10, weight: .bold))
+          .foregroundStyle(color)
+      }
+    case .ring:
+      ZStack {
+        Circle().strokeBorder(theme.palette.separator.swiftUIColor, lineWidth: 1)
+        Circle().strokeBorder(color.opacity(0.72), lineWidth: 2).padding(4)
+        Circle().fill(color).frame(width: 4, height: 4)
+      }
+    case .geometric:
+      ZStack {
+        RoundedRectangle(cornerRadius: 4).strokeBorder(color.opacity(0.72), lineWidth: 1)
+        Rectangle().fill(color.opacity(0.16)).padding(5).rotationEffect(.degrees(45))
+        Image(systemName: statusSymbol(status))
+          .font(.system(size: 8, weight: .bold))
+          .foregroundStyle(color)
+      }
+    case .index:
+      ZStack {
+        Rectangle().strokeBorder(theme.palette.separator.swiftUIColor, lineWidth: 1)
+        Text(String(format: "%02d", index + 1))
+          .font(.system(size: 9, weight: .semibold, design: .monospaced))
+          .foregroundStyle(color)
+      }
+    case .organic:
+      ZStack {
+        Capsule().fill(color.opacity(0.12)).rotationEffect(.degrees(-28))
+        Capsule().strokeBorder(color.opacity(0.62), lineWidth: 1).padding(4)
+          .rotationEffect(.degrees(28))
+        Circle().fill(color).frame(width: 5, height: 5)
+      }
     }
-    .frame(width: 29, height: 29)
-    .accessibilityHidden(true)
+  }
+
+  private var glyphSize: CGFloat {
+    min(30, max(26, CGFloat(theme.metrics.rowHeight) * 0.45))
   }
 }
 
 private struct ToolbarButton: View {
   let symbol: String
   let label: String
+  let theme: IslandTheme
   let action: () -> Void
 
   var body: some View {
     Button(action: action) {
       Image(systemName: symbol)
         .font(.system(size: 11, weight: .semibold))
-        .foregroundStyle(.white.opacity(0.62))
+        .foregroundStyle(theme.palette.primaryText.swiftUIColor.opacity(0.62))
         .frame(width: 28, height: 28)
-        .background(Color.white.opacity(0.045), in: Circle())
+        .background(theme.palette.controlFill.swiftUIColor, in: Circle())
     }
     .buttonStyle(.plain)
     .help(label)
     .accessibilityLabel(label)
+  }
+}
+
+private func statusSymbol(_ status: IslandStatus) -> String {
+  switch status {
+  case .attention: return "exclamationmark"
+  case .failure: return "xmark"
+  case .running: return "waveform.path"
+  case .completed: return "checkmark"
+  case .idle: return "minus"
+  case .offline: return "bolt.slash"
+  }
+}
+
+private func statusPriority(_ status: IslandStatus) -> Int {
+  switch status {
+  case .attention: return 0
+  case .failure: return 1
+  case .running: return 2
+  case .completed: return 3
+  case .idle: return 4
+  case .offline: return 5
   }
 }
 

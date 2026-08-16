@@ -14,25 +14,19 @@ The first release targets macOS 13 or later. It connects to a user-configured DS
 
 ## Visual direction
 
-The interface follows an aeronautical-instrument aesthetic: an obsidian capsule, precise signal colors, restrained typography, and a thin segmented signal rail that summarizes the active fleet. The collapsed state deliberately contains one line of information. Detail appears only after expansion.
+DSH Island treats the floating capsule as a compact status instrument with five selectable presentations. Original Signal is the obsidian instrument, Quiet Glass is calm and native, Orbital Deck is a dense technical console, Editorial is a light typographic ledger, and Pulse Garden is a soft organic monitor. Every presentation uses the official black DeepSeek Harness whale mark and the same semantic status colors.
 
-The memorable element is the signal rail. Each visible session contributes a short segment colored by its state; the highest-priority segment leads. It makes several concurrent Agents legible without turning the island into a dashboard.
+The themes vary surface, typography, spacing, corner geometry, aggregate visualization, row treatment, and status glyph. They do not vary information, priority, actions, ordering, keyboard behavior, VoiceOver content, or motion accessibility. A theme is a presentation choice rather than a mode.
+
+Each theme gives the aggregate state a distinct visual grammar: Original Signal uses a segmented fleet rail, Quiet Glass uses a sparse constellation, Orbital Deck uses an orbit, Editorial uses a numeric count, and Pulse Garden uses flowing status veins. All five summarize the same visible sessions and highest-priority state.
 
 The native window and hosting surface remain fully transparent outside the continuous rounded capsule. The capsule uses its internal gradient and border for separation instead of an outer shadow, because shadow pixels clipped to the rectangular window frame become visible corner blocks on light desktops. The native hosting layer enforces the same continuous corner radius as SwiftUI. Product screenshots preserve that alpha channel, and composed community artwork clips the screenshot to the same radius as a second safeguard.
 
-### Visual tokens
+### Theme tokens
 
-| Role | Value |
-| --- | --- |
-| Surface | near-black glass with a subtle blue-black vertical gradient |
-| Running | electric cyan `#55D7FF` |
-| Attention | warm amber `#FFB84D` |
-| Failure | coral red `#FF665E` |
-| Completed | mint `#62E6A5` |
-| Idle | cool gray `#8993A4` |
-| Display type | New York where available; native serif fallback |
-| Metrics type | SF Mono where available; native monospaced fallback |
-| Motion | short, interruptible springs; no perpetual decorative motion |
+`IslandTheme` owns validated metrics, palette, typography, and chrome tokens for each presentation. Metrics include collapsed and expanded dimensions, continuous corner radii, list density, brand scale, and height clamps. Chrome tokens select the aggregate visual, row treatment, glyph family, separators, blur, and light or dark surface. App-side adapters resolve token colors, fonts, and the shared whale vector into SwiftUI values.
+
+Status colors retain their meaning within each palette: attention is amber or rust, failure is coral or red, running is blue or cyan, completed is green or mint, and idle or offline is neutral. Editorial is the only light surface. Motion uses the same short, interruptible transition in every theme; Reduced Motion removes repeating or spring animation everywhere.
 
 ## Interaction model
 
@@ -66,6 +60,8 @@ Clicking a row opens the DSH Web URL with `?session=<id>`. Exact navigation is p
 
 The expanded toolbar provides refresh, endpoint settings, open DSH, and collapse controls. A menu-bar fallback provides show/hide and quit so the app never becomes impossible to control.
 
+Changing the theme in Settings updates the island immediately, preserves its fixed top edge, clamps the resized panel to the visible display, and saves the selected identifier. Missing or unrecognized stored values resolve to Original Signal.
+
 ## State priority and progress semantics
 
 Global priority is `offline > attention > failure > running > completed > idle` only when offline means there is no trustworthy live state. While connected, priority is `attention > failure > running > completed > idle`.
@@ -97,7 +93,7 @@ No telemetry, analytics, cloud relay, or credential storage is included.
 - Increased Contrast strengthens the border and removes translucent ambiguity.
 - Text remains legible at the system's larger accessibility sizes; the expanded list grows rather than truncating the status label.
 
-## Version 0.1 scope
+## Version 0.2 scope
 
 Included:
 
@@ -107,6 +103,7 @@ Included:
 - real Todo progress and current-activity summaries;
 - expandable session list, subagent indentation, deep-link handoff;
 - endpoint, privacy, launch-at-login, position, and visibility settings;
+- five selectable presentations backed by one interaction and accessibility model;
 - deterministic demo mode for screenshots and visual verification;
 - ZIP application release built by CI.
 
@@ -135,3 +132,5 @@ Not included:
 13. Given a local DSH Web instance at a non-default port, when the endpoint is saved, then the app reconnects without restart and persists the normalized URL.
 14. Given the optional deep-link plugin is absent, when a session row is clicked, then the DSH Web UI still opens and the island remains operational.
 15. Given either island state over any desktop color, when the native window or a published preview is rendered, then the corner regions outside the continuous rounded capsule have at most 0.01 alpha and no rectangular corner background is visible.
+16. Given any visible fleet, when the user selects each of the five themes, then the same sessions, order, state labels, progress, controls, accessibility labels, and click actions remain available while only presentation tokens change.
+17. Given a saved theme identifier, when the app relaunches or reads an unrecognized value, then it restores the selected theme or falls back to Original Signal and reapplies theme-specific panel geometry without moving the fixed top edge off screen.

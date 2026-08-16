@@ -3,23 +3,25 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>DSH Island marketing preview</title>
+    <title>DSH Island community preview</title>
     <style>
       :root {
         color-scheme: dark;
-        font-family: ui-monospace, "SFMono-Regular", Menlo, Monaco, Consolas, monospace;
-        --ink: #f6f2e9;
-        --muted: #8d98aa;
-        --panel: rgba(9, 13, 21, 0.88);
-        --line: rgba(255, 255, 255, 0.09);
+        font-family: "SFMono-Regular", Menlo, Monaco, Consolas, monospace;
+        --paper: #eee9dd;
+        --paper-deep: #d9d2c3;
+        --ink: #0b0d0f;
+        --night: #080b0f;
+        --night-soft: #10151b;
+        --rule: rgba(236, 232, 220, 0.15);
+        --rule-dark: rgba(11, 13, 15, 0.2);
         --amber: #ffb84d;
-        --coral: #ff6660;
-        --cyan: #55d6ff;
-        --mint: #61e6a5;
+        --coral: #ff665e;
+        --cyan: #55d7ff;
+        --mint: #63e6b1;
       }
 
       * { box-sizing: border-box; }
-
       [hidden] { display: none !important; }
 
       html,
@@ -28,260 +30,288 @@
         height: 100%;
         margin: 0;
         overflow: hidden;
-        background: #05070b;
+        background: var(--night);
       }
 
       body {
-        position: relative;
-        color: var(--ink);
+        color: var(--paper);
       }
 
       .scene {
         position: absolute;
         inset: 0;
         overflow: hidden;
+        isolation: isolate;
         background:
-          radial-gradient(circle at 72% 6%, rgba(85, 214, 255, 0.16), transparent 31%),
-          radial-gradient(circle at 12% 84%, rgba(255, 184, 77, 0.13), transparent 28%),
-          linear-gradient(145deg, #080b12 0%, #030509 57%, #091019 100%);
+          radial-gradient(circle at 80% 2%, rgba(85, 215, 255, 0.11), transparent 30%),
+          radial-gradient(circle at 8% 92%, rgba(255, 184, 77, 0.09), transparent 28%),
+          linear-gradient(142deg, #0d1116 0%, #05070a 56%, #0b1115 100%);
       }
 
       .scene::before {
         position: absolute;
+        z-index: -2;
         inset: 0;
-        content: "";
-        opacity: 0.34;
         background-image:
-          linear-gradient(rgba(255, 255, 255, 0.025) 1px, transparent 1px),
-          linear-gradient(90deg, rgba(255, 255, 255, 0.025) 1px, transparent 1px);
-        background-size: 44px 44px;
-        mask-image: linear-gradient(to bottom, black, transparent 92%);
+          linear-gradient(rgba(255, 255, 255, 0.028) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(255, 255, 255, 0.028) 1px, transparent 1px);
+        background-size: 40px 40px;
+        content: "";
+        mask-image: linear-gradient(to bottom, black, transparent 96%);
       }
 
-      .ambient-line {
+      .scene::after {
+        position: absolute;
+        z-index: -1;
+        inset: 18px;
+        border: 1px solid rgba(255, 255, 255, 0.07);
+        content: "";
+        pointer-events: none;
+      }
+
+      .registration {
+        position: absolute;
+        z-index: 12;
+        width: 20px;
+        height: 20px;
+        opacity: 0.6;
+      }
+
+      .registration::before,
+      .registration::after {
+        position: absolute;
+        background: rgba(255, 255, 255, 0.32);
+        content: "";
+      }
+
+      .registration::before { top: 9px; left: 0; width: 20px; height: 1px; }
+      .registration::after { top: 0; left: 9px; width: 1px; height: 20px; }
+      .registration.top-left { top: 8px; left: 8px; }
+      .registration.top-right { top: 8px; right: 8px; }
+      .registration.bottom-left { bottom: 8px; left: 8px; }
+      .registration.bottom-right { right: 8px; bottom: 8px; }
+
+      .whale-tile {
+        display: grid;
+        flex: 0 0 auto;
+        width: 54px;
+        height: 54px;
+        place-items: center;
+        border-radius: 15px;
+        color: #050607;
+        background: var(--paper);
+        box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.16);
+      }
+
+      .whale-tile svg { width: 31px; height: 24px; overflow: visible; }
+      .whale-tile.compact { width: 42px; height: 42px; border-radius: 12px; }
+      .whale-tile.compact svg { width: 25px; height: 19px; }
+
+      .wordmark {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+      }
+
+      .wordmark-copy strong {
+        display: block;
+        font-family: "Iowan Old Style", Baskerville, Georgia, serif;
+        font-size: 28px;
+        line-height: 1;
+        letter-spacing: -0.025em;
+      }
+
+      .wordmark-copy span {
+        display: block;
+        margin-top: 7px;
+        color: rgba(238, 233, 221, 0.52);
+        font-size: 9px;
+        letter-spacing: 0.2em;
+        text-transform: uppercase;
+      }
+
+      .native-capture {
+        --capture-radius: 28px;
+        display: block;
+        max-width: 100%;
+        overflow: hidden;
+        border-radius: var(--capture-radius);
+        clip-path: inset(0 round var(--capture-radius));
+        filter: drop-shadow(0 18px 24px rgba(0, 0, 0, 0.34));
+      }
+
+      [data-theme="original"] { --theme-accent: var(--cyan); --capture-radius: 28px; }
+      [data-theme="quiet"] { --theme-accent: #0a84ff; --capture-radius: 26px; }
+      [data-theme="orbital"] { --theme-accent: #59d8ff; --capture-radius: 22px; }
+      [data-theme="editorial"] { --theme-accent: #b24934; --capture-radius: 20px; }
+      [data-theme="pulse"] { --theme-accent: #64e2ae; --capture-radius: 34px; }
+
+      .specimen-number,
+      .specimen-tag {
+        color: var(--theme-accent);
+        font-size: 9px;
+        font-weight: 700;
+        letter-spacing: 0.17em;
+        text-transform: uppercase;
+      }
+
+      /* Five-theme editorial specimen board. */
+      .themes-layout {
+        height: 100%;
+        padding: 42px 62px 28px;
+      }
+
+      .themes-header {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        align-items: end;
+        min-height: 116px;
+        padding-bottom: 22px;
+        border-bottom: 1px solid var(--rule);
+      }
+
+      .themes-title {
+        margin: 16px 0 0;
+        max-width: 900px;
+        font-family: "Iowan Old Style", Baskerville, Georgia, serif;
+        font-size: 52px;
+        font-weight: 600;
+        line-height: 0.94;
+        letter-spacing: -0.045em;
+      }
+
+      .themes-contract {
+        padding: 14px 17px 13px;
+        border-top: 1px solid var(--cyan);
+        border-bottom: 1px solid var(--rule);
+        color: rgba(238, 233, 221, 0.58);
+        font-size: 10px;
+        line-height: 1.7;
+        letter-spacing: 0.12em;
+        text-align: right;
+        text-transform: uppercase;
+      }
+
+      .themes-contract strong { color: var(--paper); font-weight: 600; }
+
+      .themes-grid {
+        display: grid;
+        grid-template-columns: repeat(6, 1fr);
+        gap: 14px;
+        margin-top: 20px;
+      }
+
+      .theme-specimen {
+        position: relative;
+        min-height: 310px;
+        overflow: hidden;
+        border: 1px solid var(--rule);
+        background: rgba(255, 255, 255, 0.018);
+      }
+
+      .theme-specimen:nth-child(-n + 3) { grid-column: span 2; }
+      .theme-specimen:nth-child(4) { grid-column: 2 / span 2; }
+      .theme-specimen:nth-child(5) { grid-column: 4 / span 2; }
+
+      .theme-specimen::before {
         position: absolute;
         top: 0;
         left: 0;
-        right: 0;
-        height: 3px;
-        background: linear-gradient(
-          90deg,
-          transparent 0 8%,
-          var(--amber) 8% 29%,
-          var(--coral) 29% 50%,
-          var(--cyan) 50% 72%,
-          var(--mint) 72% 92%,
-          transparent 92%
-        );
-        filter: drop-shadow(0 0 10px rgba(85, 214, 255, 0.35));
+        width: 72px;
+        height: 2px;
+        background: var(--theme-accent);
+        content: "";
       }
 
-      .workspace {
-        position: absolute;
-        overflow: hidden;
-        border: 1px solid var(--line);
-        border-radius: 22px;
-        background: rgba(6, 9, 14, 0.86);
-        box-shadow: 0 30px 90px rgba(0, 0, 0, 0.52);
-      }
-
-      .window-bar {
-        display: flex;
-        height: 48px;
-        align-items: center;
-        gap: 9px;
-        padding: 0 17px;
-        border-bottom: 1px solid var(--line);
-        background: rgba(255, 255, 255, 0.018);
-      }
-
-      .dot {
-        width: 9px;
-        height: 9px;
-        border-radius: 50%;
-        background: rgba(255, 255, 255, 0.15);
-      }
-
-      .window-title {
-        margin-left: 10px;
-        color: rgba(246, 242, 233, 0.42);
-        font-size: 10px;
-        letter-spacing: 0.13em;
-        text-transform: uppercase;
-      }
-
-      .workspace-grid {
+      .theme-meta {
         display: grid;
-        height: calc(100% - 48px);
-        grid-template-columns: 190px minmax(0, 1fr) 244px;
+        grid-template-columns: 34px 1fr auto;
+        align-items: start;
+        gap: 11px;
+        padding: 15px 16px 11px;
+        border-bottom: 1px solid var(--rule);
       }
 
-      .sidebar,
-      .telemetry {
-        padding: 24px 20px;
-        background: rgba(255, 255, 255, 0.012);
+      .theme-meta h2 {
+        margin: 0;
+        font-family: "Iowan Old Style", Baskerville, Georgia, serif;
+        font-size: 19px;
+        font-weight: 600;
+        line-height: 1;
       }
 
-      .sidebar { border-right: 1px solid var(--line); }
-      .telemetry { border-left: 1px solid var(--line); }
-
-      .section-label {
-        margin-bottom: 18px;
-        color: rgba(246, 242, 233, 0.34);
-        font-size: 9px;
-        font-weight: 700;
-        letter-spacing: 0.18em;
-      }
-
-      .tree-row {
-        display: flex;
-        align-items: center;
-        gap: 9px;
-        margin: 11px 0;
-        color: rgba(246, 242, 233, 0.48);
-        font-size: 10px;
-      }
-
-      .tree-row.active { color: var(--cyan); }
-
-      .tree-icon {
-        width: 8px;
-        height: 8px;
-        border: 1px solid currentColor;
-        border-radius: 2px;
-        opacity: 0.66;
-      }
-
-      .editor {
-        position: relative;
-        padding: 28px 34px;
-      }
-
-      .editor-tab {
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
-        margin-bottom: 28px;
-        padding: 8px 12px;
-        border: 1px solid rgba(85, 214, 255, 0.14);
-        border-radius: 7px;
-        color: rgba(246, 242, 233, 0.62);
-        background: rgba(85, 214, 255, 0.04);
-        font-size: 10px;
-      }
-
-      .code-line {
-        display: grid;
-        grid-template-columns: 28px 1fr;
-        min-height: 25px;
-        color: rgba(246, 242, 233, 0.52);
-        font-size: 11px;
-        line-height: 1.55;
-      }
-
-      .line-number { color: rgba(246, 242, 233, 0.16); }
-      .code-key { color: var(--coral); }
-      .code-type { color: var(--cyan); }
-      .code-value { color: var(--mint); }
-      .code-note { color: var(--amber); }
-
-      .metric {
-        margin-bottom: 12px;
-        padding: 15px;
-        border: 1px solid var(--line);
-        border-radius: 12px;
-        background: rgba(255, 255, 255, 0.018);
-      }
-
-      .metric-value {
-        margin-bottom: 5px;
-        color: var(--ink);
-        font-family: ui-serif, Georgia, serif;
-        font-size: 22px;
-        font-weight: 700;
-      }
-
-      .metric-label {
-        color: rgba(246, 242, 233, 0.34);
+      .theme-meta p {
+        margin: 5px 0 0;
+        color: rgba(238, 233, 221, 0.42);
         font-size: 8px;
-        letter-spacing: 0.13em;
+        letter-spacing: 0.09em;
         text-transform: uppercase;
       }
 
-      .privacy-badge {
-        position: absolute;
-        display: inline-flex;
+      .theme-signal {
+        display: flex;
+        gap: 4px;
+        margin-top: 2px;
+      }
+
+      .theme-signal i {
+        display: block;
+        width: 13px;
+        height: 3px;
+        border-radius: 2px;
+        background: rgba(255, 255, 255, 0.16);
+      }
+
+      .theme-signal i:first-child { background: var(--theme-accent); }
+
+      .theme-image-stage {
+        display: grid;
+        height: 244px;
+        place-items: center;
+        padding: 12px 16px 8px;
+        background:
+          linear-gradient(90deg, transparent 49.8%, rgba(255, 255, 255, 0.025) 50%, transparent 50.2%),
+          linear-gradient(transparent 49.8%, rgba(255, 255, 255, 0.025) 50%, transparent 50.2%);
+      }
+
+      .theme-image-stage .native-capture {
+        width: 316px;
+        max-height: 227px;
+        object-fit: contain;
+      }
+
+      .themes-footer {
+        display: flex;
         align-items: center;
-        gap: 7px;
-        color: rgba(246, 242, 233, 0.42);
+        justify-content: space-between;
+        margin-top: 14px;
+        color: rgba(238, 233, 221, 0.4);
         font-size: 9px;
-        letter-spacing: 0.11em;
+        letter-spacing: 0.14em;
         text-transform: uppercase;
       }
 
-      .privacy-badge::before {
+      .themes-footer .privacy {
+        display: flex;
+        align-items: center;
+        gap: 9px;
+      }
+
+      .themes-footer .privacy::before {
         width: 7px;
         height: 7px;
         border-radius: 50%;
         background: var(--mint);
-        box-shadow: 0 0 12px rgba(97, 230, 165, 0.6);
+        box-shadow: 0 0 12px rgba(99, 230, 177, 0.55);
         content: "";
       }
 
-      .product-image {
-        --product-radius: 28px;
-        display: block;
-        overflow: hidden;
-        border-radius: var(--product-radius);
-        clip-path: inset(0 round var(--product-radius));
-        filter: drop-shadow(0 26px 45px rgba(0, 0, 0, 0.46));
-      }
-
-      .desktop-layout .workspace {
-        inset: 118px 84px 58px;
-      }
-
-      .desktop-layout .product-image {
-        position: absolute;
-        z-index: 3;
-        top: 30px;
-        left: 50%;
-        width: 540px;
-        transform: translateX(-50%);
-      }
-
-      .desktop-layout .privacy-badge {
-        right: 96px;
-        bottom: 30px;
-      }
-
-      .desktop-brand {
-        position: absolute;
-        z-index: 2;
-        left: 90px;
-        top: 40px;
-        display: flex;
-        align-items: baseline;
-        gap: 16px;
-      }
-
-      .desktop-brand strong {
-        font-family: ui-serif, Georgia, serif;
-        font-size: 22px;
-        letter-spacing: -0.02em;
-      }
-
-      .desktop-brand span {
-        color: var(--muted);
-        font-size: 9px;
-        letter-spacing: 0.16em;
-        text-transform: uppercase;
-      }
-
+      /* Social preview: a compact cover plus five real native captures. */
       .social-layout {
         display: grid;
-        grid-template-columns: 47% 53%;
-        padding: 72px 76px 58px;
+        height: 100%;
+        grid-template-columns: 38% 62%;
+        padding: 52px 58px 42px;
       }
 
       .social-copy {
@@ -290,124 +320,191 @@
         display: flex;
         flex-direction: column;
         justify-content: center;
-        padding-right: 34px;
+        padding-right: 28px;
       }
 
-      .eyebrow {
-        margin-bottom: 26px;
+      .social-kicker {
+        margin: 40px 0 22px;
         color: var(--cyan);
-        font-size: 11px;
+        font-size: 10px;
         font-weight: 700;
-        letter-spacing: 0.19em;
+        letter-spacing: 0.22em;
         text-transform: uppercase;
       }
 
       .social-copy h1 {
-        max-width: 540px;
         margin: 0;
-        font-family: ui-serif, Georgia, "Times New Roman", serif;
-        font-size: 66px;
-        line-height: 0.96;
-        letter-spacing: -0.045em;
-      }
-
-      .social-copy p {
         max-width: 430px;
-        margin: 27px 0 0;
-        color: rgba(246, 242, 233, 0.58);
-        font-family: ui-sans-serif, -apple-system, BlinkMacSystemFont, sans-serif;
-        font-size: 18px;
-        line-height: 1.55;
+        font-family: "Iowan Old Style", Baskerville, Georgia, serif;
+        font-size: 57px;
+        font-weight: 600;
+        line-height: 0.92;
+        letter-spacing: -0.05em;
       }
 
-      .status-key {
-        display: flex;
-        gap: 20px;
+      .social-deck {
+        margin: 24px 0 0;
+        max-width: 390px;
+        color: rgba(238, 233, 221, 0.55);
+        font-family: "Avenir Next", "Trebuchet MS", sans-serif;
+        font-size: 15px;
+        line-height: 1.5;
+      }
+
+      .social-contract {
+        display: inline-flex;
+        align-items: center;
+        gap: 9px;
         margin-top: 31px;
-      }
-
-      .status-key span {
-        position: relative;
-        padding-left: 14px;
-        color: rgba(246, 242, 233, 0.46);
+        padding-top: 13px;
+        border-top: 1px solid var(--rule);
+        color: rgba(238, 233, 221, 0.72);
         font-size: 9px;
-        letter-spacing: 0.11em;
+        letter-spacing: 0.15em;
         text-transform: uppercase;
       }
 
-      .status-key span::before {
+      .social-contract i { width: 42px; height: 2px; background: var(--mint); }
+
+      .social-board {
+        position: relative;
+        margin-left: 10px;
+        border-left: 1px solid var(--rule);
+      }
+
+      .social-board::before {
         position: absolute;
-        top: 2px;
-        left: 0;
-        width: 7px;
-        height: 7px;
-        border-radius: 50%;
-        background: currentColor;
+        inset: 10px 0 0 22px;
+        border-top: 1px solid var(--rule);
+        border-right: 1px solid var(--rule);
         content: "";
       }
 
-      .status-key .attention { color: var(--amber); }
-      .status-key .working { color: var(--cyan); }
-      .status-key .complete { color: var(--mint); }
-
-      .social-product {
-        position: relative;
-        z-index: 3;
-      }
-
-      .social-product .workspace {
-        inset: 28px -24px 18px 4px;
-        opacity: 0.76;
-      }
-
-      .social-product .workspace-grid {
-        grid-template-columns: 125px 1fr;
-      }
-
-      .social-product .telemetry { display: none; }
-      .social-product .sidebar { padding: 18px 14px; }
-      .social-product .editor { padding: 20px; }
-      .social-product .product-image {
+      .social-specimen {
         position: absolute;
-        z-index: 5;
-        top: 82px;
-        left: 50%;
-        width: 500px;
-        transform: translateX(-47%);
+        width: 226px;
+        min-height: 236px;
+        padding: 9px;
+        border: 1px solid rgba(238, 233, 221, 0.13);
+        background: rgba(8, 11, 15, 0.92);
+        box-shadow: 0 18px 34px rgba(0, 0, 0, 0.28);
       }
 
-      .social-product .collapsed-accent {
-        --product-radius: 34px;
+      .social-specimen .specimen-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 7px;
+        color: rgba(238, 233, 221, 0.42);
+        font-size: 7px;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+      }
+
+      .social-specimen .specimen-head b { color: var(--theme-accent); font-weight: 700; }
+      .social-specimen .native-capture { width: 100%; }
+      .social-specimen[data-theme="original"] { top: 68px; left: 230px; z-index: 7; width: 282px; }
+      .social-specimen[data-theme="quiet"] { top: 26px; left: 16px; z-index: 2; transform: rotate(-1.8deg); }
+      .social-specimen[data-theme="orbital"] { top: 8px; right: 3px; z-index: 3; transform: rotate(1.2deg); }
+      .social-specimen[data-theme="editorial"] { bottom: -17px; left: 28px; z-index: 4; transform: rotate(1.4deg); }
+      .social-specimen[data-theme="pulse"] { right: 12px; bottom: -10px; z-index: 5; transform: rotate(-1deg); }
+
+      /* Synthetic desktop context used as a secondary repository asset. */
+      .desktop-layout { height: 100%; }
+
+      .desktop-header {
+        position: absolute;
+        z-index: 4;
+        top: 35px;
+        left: 72px;
+      }
+
+      .workspace {
+        position: absolute;
+        overflow: hidden;
+        border: 1px solid var(--rule);
+        border-radius: 18px;
+        background: rgba(7, 10, 14, 0.9);
+        box-shadow: 0 30px 80px rgba(0, 0, 0, 0.48);
+      }
+
+      .desktop-layout .workspace { inset: 118px 68px 55px; }
+
+      .desktop-layout > .native-capture {
         position: absolute;
         z-index: 6;
-        top: 420px;
-        right: -3px;
-        width: 330px;
-        opacity: 0.7;
-        overflow: hidden;
-        border-radius: var(--product-radius);
-        clip-path: inset(0 round var(--product-radius));
-        filter: blur(0.1px) drop-shadow(0 20px 28px rgba(0, 0, 0, 0.44));
-      }
-
-      .demo-layout .workspace {
-        inset: 70px 64px 66px;
-        opacity: 0.78;
-      }
-
-      .demo-layout .product-image {
-        position: absolute;
-        z-index: 5;
-        top: 30px;
+        top: 31px;
         left: 50%;
+        width: 500px;
         transform: translateX(-50%);
       }
 
-      .demo-layout[data-state="working"] .product-image,
-      .demo-layout[data-state="attention"] .product-image {
-        --product-radius: 34px;
-        width: 400px;
+      .privacy-badge {
+        position: absolute;
+        z-index: 6;
+        right: 82px;
+        bottom: 27px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        color: rgba(238, 233, 221, 0.42);
+        font-size: 8px;
+        letter-spacing: 0.15em;
+        text-transform: uppercase;
       }
+
+      .privacy-badge::before {
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+        background: var(--mint);
+        content: "";
+      }
+
+      .window-bar {
+        display: flex;
+        height: 44px;
+        align-items: center;
+        gap: 8px;
+        padding: 0 16px;
+        border-bottom: 1px solid var(--rule);
+      }
+
+      .window-dot { width: 8px; height: 8px; border-radius: 50%; background: rgba(255, 255, 255, 0.14); }
+      .window-title { margin-left: 10px; color: rgba(238, 233, 221, 0.35); font-size: 8px; letter-spacing: 0.15em; text-transform: uppercase; }
+
+      .workspace-grid {
+        display: grid;
+        height: calc(100% - 44px);
+        grid-template-columns: 190px minmax(0, 1fr) 238px;
+      }
+
+      .sidebar,
+      .telemetry { padding: 24px 20px; background: rgba(255, 255, 255, 0.012); }
+      .sidebar { border-right: 1px solid var(--rule); }
+      .telemetry { border-left: 1px solid var(--rule); }
+      .section-label { margin-bottom: 18px; color: rgba(238, 233, 221, 0.32); font-size: 8px; font-weight: 700; letter-spacing: 0.18em; text-transform: uppercase; }
+      .tree-row { display: flex; align-items: center; gap: 8px; margin: 11px 0; color: rgba(238, 233, 221, 0.42); font-size: 9px; }
+      .tree-row.active { color: var(--cyan); }
+      .tree-icon { width: 7px; height: 7px; border: 1px solid currentColor; border-radius: 2px; }
+      .editor { padding: 29px 33px; }
+      .editor-tab { display: inline-flex; gap: 8px; margin-bottom: 25px; padding: 8px 11px; border: 1px solid rgba(85, 215, 255, 0.14); color: rgba(238, 233, 221, 0.55); font-size: 9px; }
+      .code-line { display: grid; grid-template-columns: 27px 1fr; min-height: 25px; color: rgba(238, 233, 221, 0.48); font-size: 10px; }
+      .line-number { color: rgba(238, 233, 221, 0.14); }
+      .code-key { color: var(--coral); }
+      .code-type { color: var(--cyan); }
+      .code-value { color: var(--mint); }
+      .code-note { color: var(--amber); }
+      .metric { margin-bottom: 11px; padding: 14px; border: 1px solid var(--rule); }
+      .metric-value { margin-bottom: 4px; font-family: "Iowan Old Style", Baskerville, Georgia, serif; font-size: 22px; font-weight: 700; }
+      .metric-label { color: rgba(238, 233, 221, 0.32); font-size: 7px; letter-spacing: 0.14em; text-transform: uppercase; }
+
+      /* Four-frame GIF: shared behavior, intentionally fixed to Original Signal. */
+      .demo-layout { height: 100%; }
+      .demo-layout .workspace { inset: 70px 64px 66px; opacity: 0.78; }
+      .demo-layout .native-capture { position: absolute; z-index: 5; top: 30px; left: 50%; transform: translateX(-50%); }
+      .demo-layout[data-state="working"] .native-capture,
+      .demo-layout[data-state="attention"] .native-capture { --capture-radius: 34px; width: 400px; }
 
       .demo-layout[data-state="expanding"] .product-frame {
         position: absolute;
@@ -419,19 +516,11 @@
         overflow: hidden;
         border-radius: 30px;
         transform: translateX(-50%);
-        filter: drop-shadow(0 26px 45px rgba(0, 0, 0, 0.46));
+        filter: drop-shadow(0 24px 42px rgba(0, 0, 0, 0.44));
       }
 
-      .demo-layout[data-state="expanding"] .product-frame .product-image {
-        position: static;
-        width: 460px;
-        transform: none;
-        filter: none;
-      }
-
-      .demo-layout[data-state="expanded"] .product-image {
-        width: 500px;
-      }
+      .demo-layout[data-state="expanding"] .product-frame .native-capture { position: static; width: 460px; transform: none; filter: none; }
+      .demo-layout[data-state="expanded"] .native-capture { width: 500px; }
 
       .attention-pulse {
         position: absolute;
@@ -450,96 +539,128 @@
 
       .demo-caption {
         position: absolute;
-        z-index: 6;
+        z-index: 7;
         left: 50%;
         bottom: 24px;
         display: flex;
         align-items: center;
-        gap: 12px;
+        gap: 11px;
         padding: 10px 15px;
-        border: 1px solid var(--line);
+        border: 1px solid var(--rule);
         border-radius: 999px;
-        color: rgba(246, 242, 233, 0.62);
-        background: rgba(4, 7, 11, 0.84);
-        box-shadow: 0 14px 30px rgba(0, 0, 0, 0.34);
-        font-size: 9px;
-        letter-spacing: 0.13em;
+        color: rgba(238, 233, 221, 0.62);
+        background: rgba(4, 7, 10, 0.88);
+        font-size: 8px;
+        letter-spacing: 0.14em;
         text-transform: uppercase;
         transform: translateX(-50%);
       }
 
-      .demo-caption::before {
-        width: 7px;
-        height: 7px;
-        border-radius: 50%;
-        background: var(--caption-color, var(--cyan));
-        box-shadow: 0 0 12px var(--caption-color, var(--cyan));
-        content: "";
-      }
-
+      .demo-caption::before { width: 7px; height: 7px; border-radius: 50%; background: var(--caption-color, var(--cyan)); box-shadow: 0 0 12px var(--caption-color, var(--cyan)); content: ""; }
       .demo-layout[data-state="attention"] .demo-caption,
-      .demo-layout[data-state="expanding"] .demo-caption {
-        --caption-color: var(--amber);
-      }
-
-      .demo-layout[data-state="expanded"] .demo-caption {
-        --caption-color: var(--mint);
-      }
+      .demo-layout[data-state="expanding"] .demo-caption { --caption-color: var(--amber); }
+      .demo-layout[data-state="expanded"] .demo-caption { --caption-color: var(--mint); }
     </style>
   </head>
   <body>
+    <svg width="0" height="0" aria-hidden="true" focusable="false">
+      <defs>
+        <symbol id="deepseek-whale" viewBox="0 0 23.16 17.04">
+          <path fill="currentColor" d="M22.9168 1.43018C22.6713 1.31018 22.5658 1.53918 22.4223 1.65519C22.3733 1.69269 22.3318 1.74169 22.2903 1.78669C21.9317 2.1697 21.5127 2.42121 20.9657 2.39121C20.1657 2.34621 19.4827 2.59771 18.8787 3.20973C18.7502 2.45521 18.3236 2.0047 17.6746 1.71569C17.3351 1.56568 16.9916 1.41518 16.7536 1.08867C16.5876 0.856163 16.5421 0.597155 16.4591 0.341647C16.4061 0.187643 16.3536 0.0301382 16.1761 0.00363739C15.9836 -0.0263635 15.9081 0.135141 15.8326 0.270145C15.5306 0.822162 15.4136 1.43018 15.4251 2.0462C15.4516 3.43174 16.0366 4.53527 17.1991 5.3203C17.3311 5.4103 17.3651 5.5003 17.3236 5.63181C17.2441 5.90231 17.1501 6.16482 17.0671 6.43533C17.0141 6.60784 16.9351 6.64584 16.7501 6.57033C16.1121 6.30383 15.5611 5.90931 15.074 5.4328C14.2475 4.63328 13.5 3.75075 12.568 3.05973C12.349 2.89822 12.13 2.74822 11.9034 2.60522C10.9524 1.68169 12.028 0.923165 12.277 0.833162C12.5375 0.739159 12.3675 0.41615 11.5259 0.42015C10.6844 0.42365 9.91439 0.705658 8.93286 1.08117C8.78935 1.13767 8.63835 1.17867 8.48384 1.21267C7.59332 1.04367 6.66829 1.00617 5.70226 1.11517C3.88321 1.31768 2.43016 2.1777 1.36213 3.64575C0.0790928 5.4103 -0.222916 7.41536 0.146595 9.50642C0.535106 11.7105 1.66014 13.535 3.38869 14.9616C5.18125 16.4406 7.24581 17.1657 9.60138 17.0266C11.0319 16.9441 12.6245 16.7526 14.421 15.2321C14.874 15.4576 15.3496 15.5476 16.1381 15.6151C16.7456 15.6716 17.3306 15.5851 17.7836 15.4911C18.4931 15.3411 18.4441 14.6841 18.1876 14.5636C16.1081 13.595 16.5646 13.9891 16.1496 13.67C17.2061 12.42 18.8202 10.1979 19.3182 7.17235C19.3672 6.83834 19.4297 6.36783 19.4222 6.09732C19.4182 5.93231 19.4562 5.86831 19.6447 5.84931C20.1657 5.78931 20.6712 5.64681 21.1357 5.3913C22.4833 4.65528 23.0268 3.44624 23.1548 1.9972C23.1738 1.77569 23.1508 1.54668 22.9168 1.43018ZM11.1749 14.4736C9.15936 12.889 8.18184 12.3675 7.77832 12.39C7.40081 12.4125 7.46881 12.8445 7.55182 13.126C7.63882 13.404 7.75182 13.5955 7.91033 13.8396C8.01983 14.0011 8.09533 14.2411 7.80083 14.4216C7.15181 14.8231 6.02327 14.2866 5.97027 14.2601C4.65673 13.4865 3.5587 12.4655 2.78467 11.069C2.03715 9.72493 1.60314 8.28289 1.53164 6.74384C1.51264 6.37233 1.62214 6.24082 1.99215 6.17332C2.47916 6.08332 2.98118 6.06432 3.46769 6.13582C5.52476 6.43633 7.27581 7.35586 8.74385 8.8129C9.58188 9.64243 10.2159 10.634 10.8689 11.6025C11.5634 12.631 12.3105 13.611 13.262 14.4146C13.598 14.6961 13.866 14.9101 14.1225 15.0681C13.349 15.1546 12.058 15.1731 11.1749 14.4746L11.1749 14.4736ZM12.141 8.25988C12.141 8.09488 12.273 7.96338 12.439 7.96338C12.4765 7.96338 12.5105 7.97088 12.541 7.98188C12.5825 7.99688 12.6205 8.01938 12.6505 8.05338C12.7035 8.10588 12.7335 8.18088 12.7335 8.25988C12.7335 8.42489 12.6015 8.55639 12.4355 8.55639C12.2695 8.55639 12.141 8.42489 12.141 8.25988ZM15.1415 9.79893C14.949 9.87793 14.7565 9.94544 14.5715 9.95294C14.2845 9.96794 13.9715 9.85143 13.8015 9.70893C13.5375 9.48742 13.3485 9.36342 13.2695 8.97691C13.2355 8.8119 13.2545 8.55639 13.2845 8.40989C13.3525 8.09438 13.277 7.89187 13.0545 7.70787C12.8735 7.55786 12.643 7.51636 12.39 7.51636C12.2955 7.51636 12.209 7.47486 12.1445 7.44136C12.039 7.38886 11.9519 7.25735 12.035 7.09585C12.0615 7.04335 12.19 6.91584 12.22 6.89334C12.5635 6.69784 12.9595 6.76184 13.326 6.90834C13.6655 7.04735 13.9225 7.30236 14.292 7.66287C14.6695 8.09838 14.7375 8.21838 14.9525 8.54539C15.1225 8.8009 15.277 9.06341 15.3831 9.36392C15.4471 9.55142 15.3641 9.70493 15.1415 9.79893Z"/>
+        </symbol>
+      </defs>
+    </svg>
+
     <main class="scene">
-      <div class="ambient-line"></div>
-      <section class="desktop-layout" hidden>
-        <div class="desktop-brand">
-          <strong>DSH Island</strong>
-          <span>Every agent · one glance</span>
+      <i class="registration top-left"></i>
+      <i class="registration top-right"></i>
+      <i class="registration bottom-left"></i>
+      <i class="registration bottom-right"></i>
+
+      <section class="themes-layout" hidden>
+        <header class="themes-header">
+          <div>
+            <div class="wordmark">
+              <span class="whale-tile"><svg aria-hidden="true"><use href="#deepseek-whale"></use></svg></span>
+              <span class="wordmark-copy"><strong>DSH Island</strong><span>Appearance collection · macOS</span></span>
+            </div>
+            <h1 class="themes-title">One interaction model.<br>Five visual instruments.</h1>
+          </div>
+          <div class="themes-contract"><strong>Shared in every theme</strong><br>Status · order · actions<br>VoiceOver · keyboard · motion</div>
+        </header>
+
+        <div class="themes-grid">
+          <article class="theme-specimen" data-theme="original">
+            <header class="theme-meta"><span class="specimen-number">01</span><div><h2>Original Signal</h2><p>Clear · compact · shipped</p></div><span class="theme-signal"><i></i><i></i><i></i></span></header>
+            <div class="theme-image-stage"><img class="native-capture" src="../assets/dsh-island-theme-original.png" alt=""></div>
+          </article>
+          <article class="theme-specimen" data-theme="quiet">
+            <header class="theme-meta"><span class="specimen-number">02</span><div><h2>Quiet Glass</h2><p>Native · calm · low-density</p></div><span class="theme-signal"><i></i><i></i><i></i></span></header>
+            <div class="theme-image-stage"><img class="native-capture" src="../assets/dsh-island-theme-quiet.png" alt=""></div>
+          </article>
+          <article class="theme-specimen" data-theme="orbital">
+            <header class="theme-meta"><span class="specimen-number">03</span><div><h2>Orbital Deck</h2><p>Technical · focused · dense</p></div><span class="theme-signal"><i></i><i></i><i></i></span></header>
+            <div class="theme-image-stage"><img class="native-capture" src="../assets/dsh-island-theme-orbital.png" alt=""></div>
+          </article>
+          <article class="theme-specimen" data-theme="editorial">
+            <header class="theme-meta"><span class="specimen-number">04</span><div><h2>Editorial</h2><p>Typographic · ordered · distinct</p></div><span class="theme-signal"><i></i><i></i><i></i></span></header>
+            <div class="theme-image-stage"><img class="native-capture" src="../assets/dsh-island-theme-editorial.png" alt=""></div>
+          </article>
+          <article class="theme-specimen" data-theme="pulse">
+            <header class="theme-meta"><span class="specimen-number">05</span><div><h2>Pulse Garden</h2><p>Ambient · legible · gentle</p></div><span class="theme-signal"><i></i><i></i><i></i></span></header>
+            <div class="theme-image-stage"><img class="native-capture" src="../assets/dsh-island-theme-pulse.png" alt=""></div>
+          </article>
         </div>
-        <div class="workspace"></div>
-        <img class="product-image" src="../assets/dsh-island-expanded.png" alt="">
-        <div class="privacy-badge">Synthetic demo data · no telemetry</div>
+        <footer class="themes-footer"><span>Every agent · one glance</span><span class="privacy">Synthetic sessions · local native captures</span><span>DSH / UI–05</span></footer>
       </section>
 
       <section class="social-layout" hidden>
         <div class="social-copy">
-          <div class="eyebrow">DSH Island · macOS</div>
-          <h1>Every agent.<br>One glance.</h1>
-          <p>A lightweight status island for every DeepSeek Harness session.</p>
-          <div class="status-key">
-            <span class="attention">Needs you</span>
-            <span class="working">Working</span>
-            <span class="complete">Complete</span>
+          <div class="wordmark">
+            <span class="whale-tile"><svg aria-hidden="true"><use href="#deepseek-whale"></use></svg></span>
+            <span class="wordmark-copy"><strong>DSH Island</strong><span>Native macOS companion</span></span>
           </div>
+          <div class="social-kicker">Every agent · one glance</div>
+          <h1>Choose the instrument.<br>Keep the workflow.</h1>
+          <p class="social-deck">Five visual themes for the same truthful DeepSeek Harness session status.</p>
+          <div class="social-contract"><i></i>One interaction model · five skins</div>
         </div>
-        <div class="social-product">
-          <div class="workspace"></div>
-          <img class="product-image" src="../assets/dsh-island-expanded.png" alt="">
-          <img class="collapsed-accent" src="../assets/dsh-island-collapsed.png" alt="">
+        <div class="social-board">
+          <article class="social-specimen" data-theme="quiet"><div class="specimen-head"><b>02</b><span>Quiet Glass</span></div><img class="native-capture" src="../assets/dsh-island-theme-quiet.png" alt=""></article>
+          <article class="social-specimen" data-theme="orbital"><div class="specimen-head"><b>03</b><span>Orbital Deck</span></div><img class="native-capture" src="../assets/dsh-island-theme-orbital.png" alt=""></article>
+          <article class="social-specimen" data-theme="original"><div class="specimen-head"><b>01</b><span>Original Signal</span></div><img class="native-capture" src="../assets/dsh-island-theme-original.png" alt=""></article>
+          <article class="social-specimen" data-theme="editorial"><div class="specimen-head"><b>04</b><span>Editorial</span></div><img class="native-capture" src="../assets/dsh-island-theme-editorial.png" alt=""></article>
+          <article class="social-specimen" data-theme="pulse"><div class="specimen-head"><b>05</b><span>Pulse Garden</span></div><img class="native-capture" src="../assets/dsh-island-theme-pulse.png" alt=""></article>
         </div>
       </section>
 
-      <section class="demo-layout" hidden>
+      <section class="desktop-layout" hidden>
+        <div class="desktop-header wordmark">
+          <span class="whale-tile compact"><svg aria-hidden="true"><use href="#deepseek-whale"></use></svg></span>
+          <span class="wordmark-copy"><strong>DSH Island</strong><span>Every agent · one glance</span></span>
+        </div>
+        <div class="workspace"></div>
+        <img class="native-capture" data-theme="original" src="../assets/dsh-island-theme-original.png" alt="">
+        <div class="privacy-badge">Synthetic demo data · no telemetry</div>
+      </section>
+
+      <section class="demo-layout" data-theme="original" hidden>
         <div class="workspace"></div>
         <div class="attention-pulse"></div>
-        <div class="product-frame">
-          <img class="product-image" alt="">
-        </div>
+        <div class="product-frame"><img class="native-capture" alt=""></div>
         <div class="demo-caption"></div>
       </section>
     </main>
 
     <template id="workspace-template">
-      <div class="window-bar">
-        <span class="dot"></span><span class="dot"></span><span class="dot"></span>
-        <span class="window-title">Status lab · privacy-safe fixture</span>
-      </div>
+      <div class="window-bar"><span class="window-dot"></span><span class="window-dot"></span><span class="window-dot"></span><span class="window-title">Status lab · privacy-safe fixture</span></div>
       <div class="workspace-grid">
         <aside class="sidebar">
           <div class="section-label">Workspace</div>
           <div class="tree-row"><span class="tree-icon"></span> Sources</div>
           <div class="tree-row active"><span class="tree-icon"></span> IslandView.swift</div>
           <div class="tree-row"><span class="tree-icon"></span> StatusEngine.swift</div>
-          <div class="tree-row"><span class="tree-icon"></span> DemoTests.swift</div>
+          <div class="tree-row"><span class="tree-icon"></span> ThemeStyle.swift</div>
           <div class="tree-row"><span class="tree-icon"></span> README.md</div>
         </aside>
         <div class="editor">
@@ -564,7 +685,7 @@
 
     <script>
       const params = new URLSearchParams(location.search);
-      const mode = params.get("mode") || "desktop";
+      const mode = params.get("mode") || "themes";
       const state = params.get("state") || "working";
       const workspaceTemplate = document.querySelector("#workspace-template");
 
@@ -573,30 +694,20 @@
       }
 
       const layout = document.querySelector(`.${mode}-layout`);
+      if (!layout) throw new Error(`Unknown preview mode: ${mode}`);
       layout.hidden = false;
 
       if (mode === "demo") {
         layout.dataset.state = state;
-        const image = layout.querySelector(".product-image");
+        const image = layout.querySelector(".native-capture");
         const caption = layout.querySelector(".demo-caption");
         const states = {
-          working: {
-            image: "../assets/dsh-island-working.png",
-            caption: "Three agents keep working while you stay in flow",
-          },
-          attention: {
-            image: "../assets/dsh-island-collapsed.png",
-            caption: "One session needs you",
-          },
-          expanding: {
-            image: "../assets/dsh-island-expanded.png",
-            caption: "One click opens the whole fleet",
-          },
-          expanded: {
-            image: "../assets/dsh-island-expanded.png",
-            caption: "Attention, failure, progress, and completion",
-          },
+          working: { image: "../assets/dsh-island-working.png", caption: "Three agents keep working while you stay in flow" },
+          attention: { image: "../assets/dsh-island-collapsed.png", caption: "One session needs you" },
+          expanding: { image: "../assets/dsh-island-expanded.png", caption: "One click opens the same fleet" },
+          expanded: { image: "../assets/dsh-island-expanded.png", caption: "Shared status, progress, actions, and accessibility" },
         };
+        if (!states[state]) throw new Error(`Unknown demo state: ${state}`);
         image.src = states[state].image;
         caption.textContent = states[state].caption;
       }
