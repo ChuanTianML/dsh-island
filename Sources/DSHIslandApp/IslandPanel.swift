@@ -1,4 +1,5 @@
 import AppKit
+import DSHIslandCore
 import QuartzCore
 import SwiftUI
 
@@ -18,21 +19,26 @@ final class IslandPanelController: NSObject, NSWindowDelegate {
     static let saved = "islandPosition.saved"
   }
 
-  private let collapsedSize = NSSize(width: 400, height: 68)
   private let model: IslandViewModel
   private let defaults: UserDefaults
   private let panel: IslandPanel
+  private var theme: IslandTheme
   private var suppressPositionSave = false
+  private var resizeGeneration = 0
 
   init(
     model: IslandViewModel,
+    preferences: PreferencesStore,
     defaults: UserDefaults = .standard,
     openSettings: @escaping () -> Void
   ) {
     self.model = model
     self.defaults = defaults
+    theme = preferences.theme
+    let metrics = preferences.theme.metrics
+    let initialSize = NSSize(width: metrics.collapsedWidth, height: metrics.collapsedHeight)
     panel = IslandPanel(
-      contentRect: NSRect(origin: .zero, size: collapsedSize),
+      contentRect: NSRect(origin: .zero, size: initialSize),
       styleMask: [.borderless, .fullSizeContentView],
       backing: .buffered,
       defer: false
@@ -55,14 +61,18 @@ final class IslandPanelController: NSObject, NSWindowDelegate {
       .stationary,
     ]
     let hostingController = NSHostingController(
-      rootView: IslandView(model: model, openSettings: openSettings)
+      rootView: IslandView(
+        model: model,
+        preferences: preferences,
+        openSettings: openSettings
+      )
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     )
     hostingController.view.wantsLayer = true
     hostingController.view.layer?.backgroundColor = NSColor.clear.cgColor
     hostingController.view.layer?.isOpaque = false
     hostingController.view.layer?.cornerCurve = .continuous
-    hostingController.view.layer?.cornerRadius = collapsedSize.height / 2
+    hostingController.view.layer?.cornerRadius = metrics.collapsedCornerRadius
     hostingController.view.layer?.masksToBounds = true
     panel.contentViewController = hostingController
     restorePosition()
@@ -85,13 +95,33 @@ final class IslandPanelController: NSObject, NSWindowDelegate {
   /// Resizes around a fixed top-center anchor so expansion unfolds downward.
   func setExpanded(_ expanded: Bool, animated: Bool = true) {
     let targetSize = expanded ? expandedSize : collapsedSize
-    panel.contentViewController?.view.layer?.cornerRadius = expanded ? 28 : collapsedSize.height / 2
+    resize(to: targetSize, expanded: expanded, animated: animated)
+  }
+
+  /// Applies presentation metrics without changing expansion state or persisted position.
+  func setTheme(_ newTheme: IslandTheme, animated: Bool = true) {
+    guard theme != newTheme else { return }
+    theme = newTheme
+    let expanded = model.isExpanded
+    resize(
+      to: expanded ? expandedSize : collapsedSize,
+      expanded: expanded,
+      animated: animated
+    )
+  }
+
+  private func resize(to targetSize: NSSize, expanded: Bool, animated: Bool) {
+    let metrics = theme.metrics
+    panel.contentViewController?.view.layer?.cornerRadius =
+      expanded ? metrics.expandedCornerRadius : metrics.collapsedCornerRadius
     let oldFrame = panel.frame
     if abs(oldFrame.width - targetSize.width) < 0.5,
       abs(oldFrame.height - targetSize.height) < 0.5
     {
       return
     }
+    resizeGeneration &+= 1
+    let activeResizeGeneration = resizeGeneration
     var targetFrame = NSRect(
       x: oldFrame.midX - targetSize.width / 2,
       y: oldFrame.maxY - targetSize.height,
@@ -108,12 +138,15 @@ final class IslandPanelController: NSObject, NSWindowDelegate {
         panel.animator().setFrame(targetFrame, display: true)
       } completionHandler: { [weak self] in
         Task { @MainActor in
-          self?.suppressPositionSave = false
+          guard let self, self.resizeGeneration == activeResizeGeneration else { return }
+          self.suppressPositionSave = false
         }
       }
     } else {
       panel.setFrame(targetFrame, display: true)
-      suppressPositionSave = false
+      if resizeGeneration == activeResizeGeneration {
+        suppressPositionSave = false
+      }
     }
   }
 
@@ -128,7 +161,8 @@ final class IslandPanelController: NSObject, NSWindowDelegate {
     defaults.removeObject(forKey: PositionKey.topY)
     defaults.set(false, forKey: PositionKey.saved)
     suppressPositionSave = true
-    panel.setFrame(defaultFrame(on: preferredScreen()), display: true)
+    let size = model.isExpanded ? expandedSize : collapsedSize
+    panel.setFrame(defaultFrame(on: preferredScreen(), size: size), display: true)
     suppressPositionSave = false
     show()
   }
@@ -143,16 +177,21 @@ final class IslandPanelController: NSObject, NSWindowDelegate {
     savePosition()
   }
 
+  private var collapsedSize: NSSize {
+    let metrics = theme.metrics
+    return NSSize(width: metrics.collapsedWidth, height: metrics.collapsedHeight)
+  }
+
   private var expandedSize: NSSize {
-    let visibleRows = min(model.snapshot.sessions.count, 5)
-    let height = max(280, min(570, 150 + CGFloat(visibleRows) * 76))
-    return NSSize(width: 500, height: height)
+    let metrics = theme.metrics
+    let height = metrics.expandedHeight(visibleRowCount: model.snapshot.sessions.count)
+    return NSSize(width: metrics.expandedWidth, height: height)
   }
 
   private func restorePosition() {
     let screen = preferredScreen(savedIdentifier: defaults.string(forKey: PositionKey.screen))
     guard defaults.bool(forKey: PositionKey.saved) else {
-      panel.setFrame(defaultFrame(on: screen), display: false)
+      panel.setFrame(defaultFrame(on: screen, size: collapsedSize), display: false)
       return
     }
     let visible = screen.visibleFrame
@@ -181,13 +220,13 @@ final class IslandPanelController: NSObject, NSWindowDelegate {
     defaults.set(true, forKey: PositionKey.saved)
   }
 
-  private func defaultFrame(on screen: NSScreen) -> NSRect {
+  private func defaultFrame(on screen: NSScreen, size: NSSize) -> NSRect {
     let visible = screen.visibleFrame
     return NSRect(
-      x: visible.midX - collapsedSize.width / 2,
-      y: visible.maxY - collapsedSize.height - 12,
-      width: collapsedSize.width,
-      height: collapsedSize.height
+      x: visible.midX - size.width / 2,
+      y: visible.maxY - size.height - 12,
+      width: size.width,
+      height: size.height
     )
   }
 

@@ -4,6 +4,9 @@ All notable changes to DSH Island are documented here.
 
 ## Unreleased
 
+- Add five selectable visual themes backed by one shared session model, action set, and accessibility model.
+- Add the official DeepSeek Harness whale mark, theme-driven panel geometry, and persisted Appearance settings.
+- Add privacy-safe native captures for every theme plus a five-theme community specimen board and social preview.
 - Add privacy-safe social, desktop-context, and animated community previews generated from deterministic demo sessions.
 - Document manual and Coding Agent installation, endpoint configuration, and the companion-app integration model.
 - Add a running-only demo fixture for the collapsed-to-attention community walkthrough.

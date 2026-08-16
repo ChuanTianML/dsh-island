@@ -6,7 +6,7 @@
 
 [English](README.md)
 
-<img src="docs/assets/dsh-island-desktop.png" width="900" alt="DSH Island 悬浮在隐私安全的合成开发工作区上方">
+<img src="docs/assets/dsh-island-themes.png" width="1000" alt="五套 DSH Island 主题展示同一组隐私安全的合成会话">
 
 <sub>所有截图与录屏均使用固定合成会话，不包含个人桌面、路径、账号或真实对话。</sub>
 
@@ -30,6 +30,20 @@
 <div align="center">
   <img src="docs/assets/dsh-island-collapsed.png" width="400" alt="DSH Island 收起态">
 </div>
+
+## 外观
+
+五套外观共用同一套状态模型、操作和无障碍语义。切换主题不会改变会话排序、进度语义、按钮、VoiceOver 标签、键盘操作或“减弱动态效果”支持。
+
+| 主题 | 风格 |
+| --- | --- |
+| Original Signal | 已发布的黑曜石仪表风格，使用卡片和分段会话信号轨 |
+| Quiet Glass | 安静的原生玻璃质感，使用圆环和克制的分隔线 |
+| Orbital Deck | 紧凑的技术控制台，使用轨道总览和网格列表 |
+| Editorial | 明亮的编辑部式台账，使用会话编号和印刷式结构 |
+| Pulse Garden | 柔和的深绿色界面，使用有机状态脉络 |
+
+每套主题都使用 DeepSeek Harness 官方黑色鲸鱼元素。可在“设置 → 外观”中即时切换，选择会在后续启动时保留。
 
 ## 安装
 
@@ -59,6 +73,7 @@ DSH 使用默认回环地址时无需配置。可从状态岛齿轮或菜单栏�
 | DSH endpoint | 连接其他本地端口或可信 Host |
 | Allow a non-loopback endpoint | 接受任何远程地址前必须显式开启 |
 | Privacy mode | 匿名化标题并隐藏 Todo、工具名、错误和连接详情 |
+| Appearance | 选择 Original Signal、Quiet Glass、Orbital Deck、Editorial 或 Pulse Garden |
 | Launch at login | 注册为 macOS 登录项 |
 | Reset island position | 恢复悬浮窗的默认显示器相对位置 |
 
@@ -116,8 +131,9 @@ swift build -c release -Xswiftc -strict-concurrency=complete -Xswiftc -warnings-
 ```sh
 swift run dsh-island --demo-working
 swift run dsh-island --demo-expanded
+swift run dsh-island --demo-expanded --theme editorial
 ```
 
-仓库中的社区展示素材由同一组合成数据生成。运行 `./scripts/render-marketing-assets.sh` 可重新生成社交预览、桌面场景和 GIF 源帧；隐私规则见 [`docs/marketing/README.md`](docs/marketing/README.md)。
+仓库中的社区展示素材由同一组合成数据生成。运行 `./scripts/render-marketing-assets.sh` 可重新生成五主题标本板、社交预览、桌面场景和 GIF 源帧；隐私规则见 [`docs/marketing/README.md`](docs/marketing/README.md)。
 
 详细说明见[产品设计](docs/product-design.md)、[技术架构](docs/architecture.md)和 [0.1 本机验证记录](docs/validation.md)。项目使用 [MIT License](LICENSE)。

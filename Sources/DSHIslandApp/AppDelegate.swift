@@ -29,13 +29,15 @@ private final class AppDelegate: NSObject, NSApplicationDelegate {
   private var cancellables: Set<AnyCancellable> = []
 
   func applicationDidFinishLaunching(_ notification: Notification) {
-    let arguments = Set(CommandLine.arguments.dropFirst())
+    let orderedArguments = Array(CommandLine.arguments.dropFirst())
+    let arguments = Set(orderedArguments)
     let demoWorking = arguments.contains("--demo-working")
     let demoMode =
       arguments.contains("--demo") || arguments.contains("--demo-expanded") || demoWorking
     let startExpanded = arguments.contains("--demo-expanded")
+    let themeOverride = Self.themeOverride(in: orderedArguments)
 
-    preferences = PreferencesStore()
+    preferences = PreferencesStore(themeOverride: themeOverride)
     model = IslandViewModel(
       preferences: preferences,
       demoMode: demoMode,
@@ -44,6 +46,7 @@ private final class AppDelegate: NSObject, NSApplicationDelegate {
     )
     panelController = IslandPanelController(
       model: model,
+      preferences: preferences,
       openSettings: { [weak self] in self?.showPreferences() }
     )
     model.onExpansionChanged = { [weak self] expanded in
@@ -52,6 +55,9 @@ private final class AppDelegate: NSObject, NSApplicationDelegate {
     preferences.onConnectionChanged = { [weak self] in self?.model.reconnect() }
     preferences.onPrivacyChanged = { [weak self] in self?.model.applyPrivacyPreference() }
     preferences.onResetPosition = { [weak self] in self?.panelController.resetPosition() }
+    preferences.onThemeChanged = { [weak self] theme in
+      self?.panelController.setTheme(theme)
+    }
 
     installStatusItem()
     observeState()
@@ -182,6 +188,13 @@ private final class AppDelegate: NSObject, NSApplicationDelegate {
 
   private func updateMenuVisibilityTitle() {
     showItem?.title = panelController?.isVisible == true ? "Hide Island" : "Show Island"
+  }
+
+  private static func themeOverride(in arguments: [String]) -> IslandTheme? {
+    guard let flag = arguments.firstIndex(of: "--theme"),
+      arguments.indices.contains(flag + 1)
+    else { return nil }
+    return IslandTheme.resolve(arguments[flag + 1])
   }
 
   private func signalReadyIfRequested() {

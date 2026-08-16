@@ -62,11 +62,22 @@ capture() {
   echo "$output_file"
 }
 
-capture working 400 68 --demo-working
-capture collapsed 400 68 --demo
-capture expanded 500 454 --demo-expanded
+capture working 400 68 --demo-working --theme original
+capture collapsed 400 68 --demo --theme original
+capture expanded 500 454 --demo-expanded --theme original
+
+capture theme-original 500 454 --demo-expanded --theme original
+capture theme-quiet 440 384 --demo-expanded --theme quiet
+capture theme-orbital 500 398 --demo-expanded --theme orbital
+capture theme-editorial 500 436 --demo-expanded --theme editorial
+capture theme-pulse 500 434 --demo-expanded --theme pulse
 
 swift "$PROJECT_ROOT/scripts/verify-transparent-corners.swift" \
-  "$OUTPUT_DIR/dsh-island-working.png" \
-  "$OUTPUT_DIR/dsh-island-collapsed.png" \
-  "$OUTPUT_DIR/dsh-island-expanded.png"
+  "$OUTPUT_DIR/dsh-island-working.png" 34 \
+  "$OUTPUT_DIR/dsh-island-collapsed.png" 34 \
+  "$OUTPUT_DIR/dsh-island-expanded.png" 28 \
+  "$OUTPUT_DIR/dsh-island-theme-original.png" 28 \
+  "$OUTPUT_DIR/dsh-island-theme-quiet.png" 26 \
+  "$OUTPUT_DIR/dsh-island-theme-orbital.png" 22 \
+  "$OUTPUT_DIR/dsh-island-theme-editorial.png" 20 \
+  "$OUTPUT_DIR/dsh-island-theme-pulse.png" 34

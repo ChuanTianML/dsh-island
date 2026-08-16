@@ -59,6 +59,7 @@ render() {
 }
 
 render 1200 630 "mode=social" "$OUTPUT_DIR/dsh-island-social-preview.png"
+render 1600 1000 "mode=themes" "$OUTPUT_DIR/dsh-island-themes.png"
 render 1600 1000 "mode=desktop" "$OUTPUT_DIR/dsh-island-desktop.png"
 render 1200 720 "mode=demo&state=working" "$FRAME_DIR/00-working.png"
 render 1200 720 "mode=demo&state=attention" "$FRAME_DIR/01-attention.png"
@@ -85,6 +86,7 @@ trap 'rm -f "$GIF_CONCAT"' EXIT
   -t 7.5 -loop 0 "$OUTPUT_DIR/dsh-island-demo.gif"
 
 echo "$OUTPUT_DIR/dsh-island-social-preview.png"
+echo "$OUTPUT_DIR/dsh-island-themes.png"
 echo "$OUTPUT_DIR/dsh-island-desktop.png"
 echo "$OUTPUT_DIR/dsh-island-demo.gif"
 echo "$FRAME_DIR"

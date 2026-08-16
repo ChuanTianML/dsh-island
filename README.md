@@ -11,7 +11,7 @@
 
 [简体中文](README.zh-CN.md)
 
-<img src="docs/assets/dsh-island-desktop.png" width="900" alt="DSH Island floating above a privacy-safe synthetic developer workspace">
+<img src="docs/assets/dsh-island-themes.png" width="1000" alt="Five DSH Island themes showing the same privacy-safe synthetic session fleet">
 
 <sub>Every screenshot and recording uses deterministic synthetic sessions—never a personal desktop, path, account, or live conversation.</sub>
 
@@ -40,6 +40,20 @@ The signal rail is a compact map of the visible fleet. Amber means human input, 
 <div align="center">
   <img src="docs/assets/dsh-island-collapsed.png" width="400" alt="DSH Island collapsed capsule">
 </div>
+
+## Appearance
+
+One status model, one set of actions, and one accessibility model power five selectable presentations. Changing a theme never changes session ordering, progress semantics, controls, VoiceOver labels, keyboard behavior, or Reduce Motion support.
+
+| Theme | Character |
+| --- | --- |
+| Original Signal | The shipped obsidian instrument with cards and a segmented fleet rail |
+| Quiet Glass | A calm native-glass treatment with rings and restrained dividers |
+| Orbital Deck | A dense technical console with an orbit summary and grid rows |
+| Editorial | A light typographic ledger with numbered sessions and print-like structure |
+| Pulse Garden | A soft deep-green surface with organic status veins |
+
+Every theme carries the official black DeepSeek Harness whale mark. Choose one in **Settings → Appearance**; the selection is applied immediately and persists across launches.
 
 ## Truthful progress
 
@@ -84,6 +98,7 @@ No configuration is required when DSH uses the default loopback endpoint. Open S
 | DSH endpoint | Connect to a different local port or trusted Host |
 | Allow a non-loopback endpoint | Required before any remote address is accepted |
 | Privacy mode | Alias titles and hide Todo text, tool names, errors, and connection details |
+| Appearance | Choose Original Signal, Quiet Glass, Orbital Deck, Editorial, or Pulse Garden |
 | Launch at login | Register the app with macOS login items |
 | Reset island position | Return the panel to its default display-relative position |
 
@@ -133,9 +148,10 @@ Run the deterministic visual fixture without a DSH Host:
 ```sh
 swift run dsh-island --demo-working
 swift run dsh-island --demo-expanded
+swift run dsh-island --demo-expanded --theme editorial
 ```
 
-The committed community media is rendered from the same synthetic fixtures. Run `./scripts/render-marketing-assets.sh` to regenerate the social preview, desktop scene, and GIF source frames. See [`docs/marketing/README.md`](docs/marketing/README.md) for its privacy rules.
+The committed community media is rendered from the same synthetic fixtures. Run `./scripts/render-marketing-assets.sh` to regenerate the five-theme board, social preview, desktop scene, and GIF source frames. See [`docs/marketing/README.md`](docs/marketing/README.md) for its privacy rules.
 
 See [product design](docs/product-design.md), [architecture](docs/architecture.md), and the [0.1 validation record](docs/validation.md) for the state semantics and verification evidence.
 
