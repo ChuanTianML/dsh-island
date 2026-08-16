@@ -4,6 +4,8 @@ All notable changes to DSH Island are documented here.
 
 ## Unreleased
 
+## 0.2.0 - 2026-08-16
+
 - Add five selectable visual themes backed by one shared session model, action set, and accessibility model.
 - Add the official DeepSeek Harness whale mark, theme-driven panel geometry, and persisted Appearance settings.
 - Add privacy-safe native captures for every theme plus a five-theme community specimen board and social preview.

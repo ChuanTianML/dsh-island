@@ -49,8 +49,8 @@
 
 ### 手动安装
 
-1. 从 [最新 Release](https://github.com/ChuanTianML/dsh-island/releases/latest) 下载 `DSH-Island-0.1.0-macOS-universal.zip`。
-2. 可同时下载旁边的 `.sha256` 文件，并执行 `shasum -a 256 -c DSH-Island-0.1.0-macOS-universal.zip.sha256` 校验。
+1. 从 [最新 Release](https://github.com/ChuanTianML/dsh-island/releases/latest) 下载 `DSH-Island-0.2.0-macOS-universal.zip`。
+2. 可同时下载旁边的 `.sha256` 文件，并执行 `shasum -a 256 -c DSH-Island-0.2.0-macOS-universal.zip.sha256` 校验。
 3. 解压后将 **DSH Island.app** 移到“应用程序”。
 4. 启动 DSH Web，再打开 DSH Island。默认连接 `http://127.0.0.1:3080`。
 
@@ -64,7 +64,7 @@ dsh web
 pnpm dsh web
 ```
 
-0.1 版本使用 ad-hoc 签名，尚未经过 Apple 公证。首次启动时，macOS 可能要求按住 Control 点击应用并选择“打开”。发布包同时支持 Apple 芯片和 Intel Mac，最低系统版本为 macOS 13。
+0.2 版本使用 ad-hoc 签名，尚未经过 Apple 公证。首次启动时，macOS 可能要求按住 Control 点击应用并选择“打开”。发布包同时支持 Apple 芯片和 Intel Mac，最低系统版本为 macOS 13。
 
 DSH 使用默认回环地址时无需配置。可从状态岛齿轮或菜单栏进入设置：
 
@@ -84,7 +84,7 @@ DSH 使用默认回环地址时无需配置。可从状态岛齿轮或菜单栏�
 Coding Agent 可以完成下载、校验、安装、启动和界面配置。将下面提示词交给目标 Mac 上的 Agent：
 
 ```text
-请在这台 Mac 上安装 DSH Island v0.1.0，Release 地址：https://github.com/ChuanTianML/dsh-island/releases/tag/v0.1.0。
+请在这台 Mac 上安装 DSH Island v0.2.0，Release 地址：https://github.com/ChuanTianML/dsh-island/releases/tag/v0.2.0。
 
 1. 要求 macOS 13 或更高版本。下载 Universal ZIP 和对应 .sha256 文件，并用 shasum -a 256 -c 校验。
 2. 检查 /Applications/DSH Island.app 是否已存在；覆盖已有安装前先询问我。
@@ -136,4 +136,4 @@ swift run dsh-island --demo-expanded --theme editorial
 
 仓库中的社区展示素材由同一组合成数据生成。运行 `./scripts/render-marketing-assets.sh` 可重新生成五主题标本板、社交预览、桌面场景和 GIF 源帧；隐私规则见 [`docs/marketing/README.md`](docs/marketing/README.md)。
 
-详细说明见[产品设计](docs/product-design.md)、[技术架构](docs/architecture.md)和 [0.1 本机验证记录](docs/validation.md)。项目使用 [MIT License](LICENSE)。
+详细说明见[产品设计](docs/product-design.md)、[技术架构](docs/architecture.md)和[本机验证记录](docs/validation.md)。项目使用 [MIT License](LICENSE)。

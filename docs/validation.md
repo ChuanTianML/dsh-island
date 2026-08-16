@@ -1,6 +1,6 @@
 # Validation record
 
-This record captures the original 0.1.0 checks from 2026-08-14 and the five-theme update verified on 2026-08-16. Commands are listed exactly; transient paths and process identifiers are intentionally omitted.
+This record captures the original 0.1.0 checks from 2026-08-14 and the 0.2.0 five-theme update verified on 2026-08-16. Commands are listed exactly; transient paths and process identifiers are intentionally omitted.
 
 ## Automated checks
 
@@ -8,7 +8,7 @@ This record captures the original 0.1.0 checks from 2026-08-14 and the five-them
 - `swift build -c release -Xswiftc -strict-concurrency=complete -Xswiftc -warnings-as-errors` passed, and the universal packaging build produced one arm64/x86_64 executable.
 - `codesign --verify --deep --strict "dist/DSH Island.app"` accepted the ad-hoc signed bundle.
 - `lipo -archs "dist/DSH Island.app/Contents/MacOS/DSH Island"` reported `x86_64 arm64`.
-- `shasum -a 256 -c DSH-Island-0.1.0-macOS-universal.zip.sha256` accepted the packaged ZIP from inside `dist/`.
+- `shasum -a 256 -c DSH-Island-0.2.0-macOS-universal.zip.sha256` accepted the packaged ZIP from inside `dist/`.
 
 ## Native UI checks
 

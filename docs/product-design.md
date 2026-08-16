@@ -93,7 +93,7 @@ No telemetry, analytics, cloud relay, or credential storage is included.
 - Increased Contrast strengthens the border and removes translucent ambiguity.
 - Text remains legible at the system's larger accessibility sizes; the expanded list grows rather than truncating the status label.
 
-## Version 0.1 scope
+## Version 0.2 scope
 
 Included:
 
@@ -103,6 +103,7 @@ Included:
 - real Todo progress and current-activity summaries;
 - expandable session list, subagent indentation, deep-link handoff;
 - endpoint, privacy, launch-at-login, position, and visibility settings;
+- five selectable presentations backed by one interaction and accessibility model;
 - deterministic demo mode for screenshots and visual verification;
 - ZIP application release built by CI.
 
